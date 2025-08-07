@@ -11,25 +11,10 @@ import { Icon } from 'leaflet';
 // import L from 'leaflet'; // 這裡要加上 Leaflet 原生物件
 import 'leaflet/dist/leaflet.css';
 
-// 📌 修正 marker icon 不顯示（Patch）
-// delete L.Icon.Default.prototype._getIconUrl;
-// L.Icon.Default.mergeOptions({
-//   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-//   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-//   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-// });
 
-// 🔧 自訂 Marker icon
-// const userIcon = new L.Icon({
-//     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-//     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-//     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-//     iconSize: [25, 41],
-//     iconAnchor: [12, 41],
-//     popupAnchor: [1, -34],
-//     shadowSize: [41, 41],
-//   });
-//定義Marker Icon 
+
+
+//定義Marker Icon (定位icon)
 //建立一個「你在這裡」的 marker 樣式，使用 Leaflet 預設藍色大頭針圖案
 const userIcon = new Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png', //icon 的圖片連結（你可換成自訂圖片）
@@ -39,6 +24,23 @@ const userIcon = new Icon({
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', //陰影圖片（讓圖釘更立體）
     shadowSize: [41, 41],
 })
+
+//診所Marker icon
+const clinicIcon = new Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // 你可以換圖
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30],
+  });
+//   const clinicIcon = new Icon({
+//     iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png', // 紅色醫療十字
+//     iconSize: [30, 30],
+//     iconAnchor: [15, 30],
+//     popupAnchor: [0, -30],
+//     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+//     shadowSize: [41, 41],
+//   });
+  
 
 const taipeiCenter: LatLngExpression = [25.0478, 121.5319]; // 台北車站中心
 
@@ -56,6 +58,9 @@ function RecenterMap({ position }: { position: LatLngExpression }) {
 export default function Map() {
     //「使用者的位置」，初始為 null，等 getCurrentPosition() 拿到資料後再更新
     const [position, setPosition] = useState<LatLngExpression | null>(null);
+
+    // 暫時// 存放所有診所資料
+    const [clinics, setClinics] = useState<any[]>([]);
 
     //抓使用者定位useEffect
     useEffect(() => {
@@ -80,6 +85,24 @@ export default function Map() {
         );
     }, []);
 
+    //抓使用者定位後=> 讀取 診所資料
+    // clinic.json (API取代)的 useEffect
+    useEffect(() => {
+        //設計功能
+        const getClinicsData = async () => {
+            try {
+                /// 讀取 public/clinic.json
+                const res = await fetch('/clinic.json'); 
+                const data = await res.json();
+                setClinics(data);
+            } catch (error) {
+                console.error('載入 clinic.json 錯誤:', error);
+            }
+        };
+        getClinicsData();
+    }, [])
+    
+    //在 MapContainer 裡面加上渲染所有診所 Marker 的程式碼
     return (
         <MapContainer
         center={position || taipeiCenter}
@@ -89,6 +112,7 @@ export default function Map() {
         >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'/>
 
+            {/* 使用者定位 */}
             { position ? (
                  <>
                 <Marker position={position} icon={userIcon}>
@@ -101,6 +125,18 @@ export default function Map() {
                     <Popup>尚未取得定位，顯示預設位置</Popup>
                 </Marker>
             )}
+
+            {/* 所有心理機構 */}
+            { clinics.map(clinic => (
+                <Marker key={clinic.id} position={[clinic.lat, clinic.lng]} icon={clinicIcon}>
+                    <Popup>
+                        <strong>{clinic.name}</strong><br/>
+                        {clinic.address}
+                    </Popup>
+                </Marker>
+            ))
+
+            }
         </MapContainer>
     )
 }
