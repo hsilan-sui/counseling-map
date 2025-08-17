@@ -99,7 +99,7 @@ export default function Map({ searchClinic }: { searchClinic: string }) {
                 /// 讀取 public/clinic.json
                 const res = await fetch('/clinic.json'); 
                 const data = await res.json();
-                setClinics(data);
+                setClinics(data.rows); // ← 只取出陣列
             } catch (error) {
                 console.error('載入 clinic.json 錯誤:', error);
             }

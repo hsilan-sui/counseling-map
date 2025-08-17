@@ -14,13 +14,24 @@ function RecenterMapWithSearch({ searchClinic, clinics, popupRefs }: Props) {
     useEffect(() => {
       if (!searchClinic) return;
   
-      const matchedClinic = clinics.find(clinic =>
-        clinic.name.includes(searchClinic) || clinic.address.includes(searchClinic)
-      );
+      const keyword = searchClinic.trim().toLowerCase();
+
+      const matchedClinic = clinics.find(clinic => {
+        const name = clinic.org_name?.toLowerCase() || "";
+        const addr = clinic.address?.toLowerCase() || "";
+        return name.includes(keyword) || addr.includes(keyword);
+      });
+
+      if (!matchedClinic) {
+        alert(`找不到名稱或地址包含「${searchClinic}」的診所`);
+        return;
+      }
+
   
       if (matchedClinic) {
         map.flyTo([matchedClinic.lat, matchedClinic.lng], 16);
-        const index = clinics.findIndex(c => c.id === matchedClinic.id); // 找到該診所在陣列裡的 index
+        // ✅ 改成這樣
+        const index = clinics.findIndex(c => c === matchedClinic);// 找到該診所在陣列裡的 index
         const popup = popupRefs.current[index];
         if (popup) popup.openOn(map); // 自動開啟 popup
     }
