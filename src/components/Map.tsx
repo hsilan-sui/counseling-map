@@ -3,15 +3,15 @@
 //TileLayer 是地圖底圖，我們使用免費的 OpenStreetMap
 //center 是地圖預設中心位置
 import { MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 //安裝 TypeScript 型別檔 npm install --save-dev @types/leaflet
 import type { LatLngExpression } from 'leaflet';
 //Leaflet 的圖示（Marker 用的 icon）
 import { Icon } from 'leaflet'; 
+import clinics from '../../public/clinic.json'; // 假設你 JSON 放這裡
 // import L from 'leaflet'; // 這裡要加上 Leaflet 原生物件
 import 'leaflet/dist/leaflet.css';
-
-
+import RecenterMapWithSearch from './RecenterMapWithSearch';
 
 
 //定義Marker Icon (定位icon)
@@ -55,12 +55,16 @@ function RecenterMap({ position }: { position: LatLngExpression }) {
     return null;
   }
 
-export default function Map() {
+export default function Map({ searchClinic }: { searchClinic: string }) {
+
     //「使用者的位置」，初始為 null，等 getCurrentPosition() 拿到資料後再更新
     const [position, setPosition] = useState<LatLngExpression | null>(null);
 
     // 暫時// 存放所有診所資料
     const [clinics, setClinics] = useState<any[]>([]);
+
+    //Map.tsx 中用 useRef() 建 popup refs 陣列
+    const popupRefs = useRef<(L.Popup | null)[]>([]);
 
     //抓使用者定位useEffect
     useEffect(() => {
@@ -84,6 +88,7 @@ export default function Map() {
             }
         );
     }, []);
+
 
     //抓使用者定位後=> 讀取 診所資料
     // clinic.json (API取代)的 useEffect
@@ -125,18 +130,19 @@ export default function Map() {
                     <Popup>尚未取得定位，顯示預設位置</Popup>
                 </Marker>
             )}
-
             {/* 所有心理機構 */}
-            { clinics.map(clinic => (
-                <Marker key={clinic.id} position={[clinic.lat, clinic.lng]} icon={clinicIcon}>
-                    <Popup>
-                        <strong>{clinic.name}</strong><br/>
+            { clinics.map((clinic, i) => (
+                <Marker key={clinic.county} position={[clinic.lat, clinic.lng]} icon={clinicIcon}>
+                    <Popup  ref={(el) => { popupRefs.current[i] = el; }}>
+                        <strong>{clinic.org_name}</strong><br/>  
                         {clinic.address}
                     </Popup>
                 </Marker>
             ))
 
             }
+        <RecenterMapWithSearch searchClinic={searchClinic} clinics={clinics} popupRefs={popupRefs} />
+
         </MapContainer>
     )
 }
