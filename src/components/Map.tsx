@@ -168,12 +168,12 @@ export default function ClinicsMap(props: {
 
         <div className="mt-2 flex gap-2">
           {c.org_url && (
-            <a className="px-2 py-1 text-white bg-blue-600 rounded" href={c.org_url} target="_blank" rel="noreferrer">
+            <a className="px-2 py-1 text-white bg-pink-200 rounded" href={c.org_url} target="_blank" rel="noreferrer">
               官網
             </a>
           )}
           {c.map_url && (
-            <a className="px-2 py-1 text-white bg-gray-700 rounded" href={c.map_url} target="_blank" rel="noreferrer">
+            <a className="px-2 py-1 text-white bg-pink-200 rounded" href={c.map_url} target="_blank" rel="noreferrer">
               Google 地圖
             </a>
           )}
