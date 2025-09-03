@@ -1,44 +1,38 @@
 import { useEffect } from 'react';
-import { useMap } from 'react-leaflet'; 
-import type { Popup } from 'leaflet';
+import { useMap } from 'react-leaflet';
+import type { Marker as LeafletMarker } from 'leaflet';
+import type { Clinic } from '@/types/clinic';
 
-type Props = {
-    searchClinic: string;
-    clinics: any[];
-    popupRefs: React.MutableRefObject<(Popup | null)[]>;
-  };
+export default function RecenterMapWithSearch({
+  searchClinic,
+  clinics,
+  markerRefs,
+}: {
+  searchClinic: string;
+  clinics: Clinic[];
+  markerRefs: React.MutableRefObject<(LeafletMarker | null)[]>;
+}) {
+  const map = useMap();
 
-function RecenterMapWithSearch({ searchClinic, clinics, popupRefs }: Props) {
-    const map = useMap();
-  
-    useEffect(() => {
-      if (!searchClinic) return;
-  
-      const keyword = searchClinic.trim().toLowerCase();
+  useEffect(() => {
+    const kw = (searchClinic || '').trim();
+    if (!kw) return;
 
-      const matchedClinic = clinics.find(clinic => {
-        const name = clinic.org_name?.toLowerCase() || "";
-        const addr = clinic.address?.toLowerCase() || "";
-        return name.includes(keyword) || addr.includes(keyword);
-      });
+    const idx = clinics.findIndex(
+      c => (c.org_name && c.org_name.includes(kw)) || (c.address && c.address.includes(kw))
+    );
+    if (idx < 0) return;
 
-      if (!matchedClinic) {
-        alert(`找不到名稱或地址包含「${searchClinic}」的診所`);
-        return;
-      }
+    const c = clinics[idx];
+    map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 16), { duration: 0.6 });
 
-  
-      if (matchedClinic) {
-        map.flyTo([matchedClinic.lat, matchedClinic.lng], 16);
-        // ✅ 改成這樣
-        const index = clinics.findIndex(c => c === matchedClinic);// 找到該診所在陣列裡的 index
-        const popup = popupRefs.current[index];
-        if (popup) popup.openOn(map); // 自動開啟 popup
-    }
-    }, [searchClinic, clinics]);
-  
-    return null;
-  }
-  
+    // 稍等飛行動畫，打開 popup
+    const t = setTimeout(() => {
+      markerRefs.current[idx]?.openPopup();
+    }, 650);
 
-  export default RecenterMapWithSearch;
+    return () => clearTimeout(t);
+  }, [searchClinic, clinics, map, markerRefs]);
+
+  return null;
+}

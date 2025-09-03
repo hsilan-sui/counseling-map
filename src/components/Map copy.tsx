@@ -57,16 +57,30 @@ function parseContacts(raw?: string | null) {
   for (const p of parts) {
     const mLine =
       p.match(/(?:^|[\s:：])(@[a-z0-9_.-]+)$/i) || p.match(/line(?:\s*id)?\s*[:：]?\s*(@[a-z0-9_.-]+)/i);
-    if (mLine) { lineIds.push(mLine[1]); continue; }
+    if (mLine) {
+      lineIds.push(mLine[1]);
+      continue;
+    }
     const tel = p.replace(/[^0-9+]/g, "");
     if (tel.length >= 6) phones.push({ raw: p, tel });
   }
   return { phones, lineIds };
 }
 
+// —— 經緯度校正（處理 lat/lng 寫反）——
+const isTWLat = (lat: number) => lat >= 21 && lat <= 26.5;
+const isTWLng = (lng: number) => lng >= 119 && lng <= 123.5;
+function normalizeLatLng(lat: number, lng: number) {
+  const ok = isTWLat(lat) && isTWLng(lng);
+  const swappedOk = isTWLat(lng) && isTWLng(lat);
+  if (ok) return { lat, lng };
+  if (!ok && swappedOk) return { lat: lng, lng: lat };
+  return { lat, lng };
+}
+
 export default function ClinicsMap(props: {
   visibleClinics: Clinic[];
-  selectedId?: string | null;   // 用 c.id
+  selectedId?: string | null;                       // 用 c.id
   center?: [number, number] | null;
   onSelect?: (clinic: Clinic) => void;
   onUserLocate?: (lat: number, lng: number) => void;
@@ -76,7 +90,7 @@ export default function ClinicsMap(props: {
   const [position, setPosition] = useState<LatLngExpression | null>(null);
 
   // 用 Map<id, ref>，避免排序後索引錯位
-  const markerRefs = useRef<Map<string, LeafletMarker>>(new Map());
+  const markerRefs = useRef<globalThis.Map<string, LeafletMarker>>(new globalThis.Map());
 
   // 抓定位
   useEffect(() => {
@@ -92,25 +106,15 @@ export default function ClinicsMap(props: {
     );
   }, [onUserLocate]);
 
-  // selectedId 變更時開對應 Popup（重試機制，避免時序問題）
+  // selectedId 變更時開對應 Popup
   useEffect(() => {
     if (!selectedId) return;
-
-    let tries = 0;
-    let timer: any;
-
-    const tryOpen = () => {
-      const ref = markerRefs.current.get(selectedId);
-      if (ref) {
-        ref.openPopup();
-      } else if (tries < 10) {
-        tries += 1;
-        timer = setTimeout(tryOpen, 50);
-      }
-    };
-
-    tryOpen();
-    return () => clearTimeout(timer);
+    const ref = markerRefs.current.get(selectedId);
+    if (!ref) {
+      const t = setTimeout(() => markerRefs.current.get(selectedId)?.openPopup(), 50);
+      return () => clearTimeout(t);
+    }
+    ref.openPopup();
   }, [selectedId, visibleClinics]);
 
   const initialCenter = useMemo<LatLngExpression>(() => {
@@ -123,7 +127,11 @@ export default function ClinicsMap(props: {
     const { phones, lineIds } = parseContacts(c.phone);
     return (
       <div className="text-sm">
-        <div className={`font-semibold p-2 rounded-lg mb-2 text-base ${c.has_quota ? "bg-green-200 text-black" : "bg-gray-400 text-white"}`}>
+        <div
+          className={`font-semibold p-2 rounded-lg mb-2 text-base ${
+            c.has_quota ? "bg-green-200 text-black" : "bg-gray-400 text-white"
+          }`}
+        >
           {c.org_name}
         </div>
         <div className="text-gray-700 mt-2">
@@ -136,7 +144,9 @@ export default function ClinicsMap(props: {
             📞 電話：
             {phones.map((p, i) => (
               <span key={p.tel}>
-                <a className="text-blue-600 underline" href={`tel:${p.tel}`}>{p.raw}</a>
+                <a className="text-blue-600 underline" href={`tel:${p.tel}`}>
+                  {p.raw}
+                </a>
                 {i < phones.length - 1 ? "、" : ""}
               </span>
             ))}
@@ -195,28 +205,39 @@ export default function ClinicsMap(props: {
       {/* 使用者位置 */}
       {position ? (
         <>
-          <Marker position={position} icon={userIcon}><Popup>你在這裡</Popup></Marker>
-          <Circle center={position} radius={300} pathOptions={{ color: "blue", weight: 2, opacity: 0.8, fillColor: "lightblue", fillOpacity: 0.3 }} />
+          <Marker position={position} icon={userIcon}>
+            <Popup>你在這裡</Popup>
+          </Marker>
+          <Circle
+            center={position}
+            radius={300}
+            pathOptions={{ color: "blue", weight: 2, opacity: 0.8, fillColor: "lightblue", fillOpacity: 0.3 }}
+          />
         </>
       ) : (
-        <Marker position={taipeiCenter} icon={userIcon}><Popup>尚未取得定位，顯示預設位置</Popup></Marker>
+        <Marker position={taipeiCenter} icon={userIcon}>
+          <Popup>尚未取得定位，顯示預設位置</Popup>
+        </Marker>
       )}
 
-      {/* 診所標記（座標已在 Home 時就校正過了，這裡直接用） */}
-      {visibleClinics.map((c) => (
-        <Marker
-          key={c.id}
-          position={[c.lat, c.lng]}
-          icon={c.has_quota ? iconGreen : iconGrey}
-          ref={(ref) => {
-            if (ref) markerRefs.current.set(c.id, ref);
-            else markerRefs.current.delete(c.id);
-          }}
-          eventHandlers={{ click: () => onSelect?.(c) }}
-        >
-          <Popup>{renderPopup(c)}</Popup>
-        </Marker>
-      ))}
+      {/* 診所標記（統一用校正後座標） */}
+      {visibleClinics.map((c) => {
+        const pos = normalizeLatLng(c.lat, c.lng);
+        return (
+          <Marker
+            key={c.id}
+            position={[pos.lat, pos.lng]}
+            icon={c.has_quota ? iconGreen : iconGrey}
+            ref={(ref) => {
+              if (ref) markerRefs.current.set(c.id, ref);
+              else markerRefs.current.delete(c.id);
+            }}
+            eventHandlers={{ click: () => onSelect?.(c) }}
+          >
+            <Popup>{renderPopup(c)}</Popup>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 }
