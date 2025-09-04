@@ -83,8 +83,9 @@ export default function ClinicsMap(props: {
   onSelect?: (clinic: Clinic) => void;
   onUserLocate?: (lat: number, lng: number) => void;
   topSafePx?: number;
+  sidebarAtBottom?: boolean;
 }) {
-  const { visibleClinics, selectedId, center, onSelect, onUserLocate, topSafePx = 24 } = props;
+  const { visibleClinics, selectedId, center, onSelect, onUserLocate, topSafePx = 24, sidebarAtBottom = false,  } = props;
 
   const [position, setPosition] = useState<LatLngExpression | null>(null);
 
@@ -195,6 +196,29 @@ export default function ClinicsMap(props: {
           {c.teleconsultation ? "（支援遠距看診）" : ""}
         </div>
 
+        {/* ✅ 只有當「左側欄改到下面」時，才在 Popup 顯示各週餘額 */}
+        {sidebarAtBottom && c.has_quota && (
+          <div className="mt-2">
+            <div className="flex justify-between text-white font-bold text-xs">
+              {[
+                { label: "本週", value: c.this_week ?? 0, color: "bg-blue-500" },
+                { label: "下週", value: c.next_week ?? 0, color: "bg-yellow-500" },
+                { label: "第3週", value: c.next_2_week ?? 0, color: "bg-teal-500" },
+                { label: "第4週", value: c.next_3_week ?? 0, color: "bg-purple-500" },
+              ].map(({ label, value, color }) => (
+                <div
+                  key={label}
+                  className={`flex flex-col items-center justify-center rounded-full text-center
+                    w-[54px] h-[54px] ${value > 0 ? color : "bg-gray-300"}`}
+                >
+                  <div className="text-[10px]">{label}</div>
+                  <div className="text-base">{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-2 flex gap-2">
           {c.org_url && (
             <a className="px-2 py-1 text-white bg-pink-200 rounded" href={c.org_url} target="_blank" rel="noreferrer">
@@ -206,6 +230,9 @@ export default function ClinicsMap(props: {
               Google 地圖
             </a>
           )}
+        </div>
+        <div className="text-[11px] text-gray-400 mt-2">
+                  更新：{c.edit_date || "尚未更新"}
         </div>
       </div>
     );

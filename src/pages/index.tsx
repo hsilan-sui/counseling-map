@@ -14,6 +14,20 @@ const ANNOUNCE_KEY = "announce:v2-2025-09-04";
 // ---- local type：在 Home 內部多帶一個 geoCounty，不動全域型別 ----
 type ClinicWithGeo = Clinic & { geoCounty: string };
 
+// 放在 Home 檔案內（或 utils）
+function useIsSidebarBottom(bp = 1170) {
+  const [isBottom, setIsBottom] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const m = window.matchMedia(`(max-width:${bp - 1}px)`); // <1170
+    const update = () => setIsBottom(m.matches);
+    update();
+    m.addEventListener("change", update);
+    return () => m.removeEventListener("change", update);
+  }, [bp]);
+  return isBottom;
+}
+
 // ---- 工具：距離、經緯度校正（處理 lat/lng 被寫反）----
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (x: number) => (x * Math.PI) / 180;
@@ -112,6 +126,9 @@ export default function Home() {
 
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [topSafe, setTopSafe] = useState(140); // 上方安全距（預設值先 140px）
+
+  // Home component 內
+  const isSidebarBottom = useIsSidebarBottom(768);
 
 
   // 篩選（依 has_quota/none）
@@ -442,6 +459,7 @@ export default function Home() {
               }}
               onUserLocate={(lat, lng) => setUserLatLng([lat, lng])}
               topSafePx={topSafe}
+              sidebarAtBottom={isSidebarBottom}
             />
 
           </div>

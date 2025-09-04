@@ -273,121 +273,121 @@ export default function LeftSidebar({
     </div>
   );
 
-  const MobileDetailCard = selectedClinic && (
-    <div className="md:hidden fixed bottom-12 inset-x-0 z-[1003]">
-      <div className="mx-3 mb-2 rounded-2xl shadow-xl border border-gray-200 bg-white overflow-hidden">
-        {/* 卡片標題列 */}
-        <div className={`${selectedClinic.has_quota ? "bg-green-500" : "bg-gray-400"} text-white px-4 py-2 flex items-center justify-between`}>
-          <div className="font-semibold truncate pr-2">{selectedClinic.org_name}</div>
-          <div className="flex items-center gap-2">
-            {typeof selectedClinic.distance === "number" && (
-              <span className="inline-flex items-center rounded-full bg-white/90 text-slate-800 px-2 py-0.5 text-[11px] font-semibold">
-                距{selectedClinic.distance.toFixed(1)} km
-              </span>
-            )}
-            <button
-              onClick={() => (onCloseMobileCard ? onCloseMobileCard() : onSelect?.(null as any))}
-              className="text-white/90 text-sm px-2 py-0.5 rounded hover:bg-white/20"
-              aria-label="關閉"
-            >
-              關閉
-            </button>
-          </div>
-        </div>
+  // const MobileDetailCard = selectedClinic && (
+  //   <div className="md:hidden fixed bottom-12 inset-x-0 z-[1003]">
+  //     <div className="mx-3 mb-2 rounded-2xl shadow-xl border border-gray-200 bg-white overflow-hidden">
+  //       {/* 卡片標題列 */}
+  //       <div className={`${selectedClinic.has_quota ? "bg-green-500" : "bg-gray-400"} text-white px-4 py-2 flex items-center justify-between`}>
+  //         <div className="font-semibold truncate pr-2">{selectedClinic.org_name}</div>
+  //         <div className="flex items-center gap-2">
+  //           {typeof selectedClinic.distance === "number" && (
+  //             <span className="inline-flex items-center rounded-full bg-white/90 text-slate-800 px-2 py-0.5 text-[11px] font-semibold">
+  //               距{selectedClinic.distance.toFixed(1)} km
+  //             </span>
+  //           )}
+  //           <button
+  //             onClick={() => (onCloseMobileCard ? onCloseMobileCard() : onSelect?.(null as any))}
+  //             className="text-white/90 text-sm px-2 py-0.5 rounded hover:bg-white/20"
+  //             aria-label="關閉"
+  //           >
+  //             關閉
+  //           </button>
+  //         </div>
+  //       </div>
 
-        {/* 卡片內容 */}
-        <div className="max-h-[45vh] overflow-y-auto px-4 py-3 text-sm text-gray-800 space-y-2">
-          <div>📍 {selectedClinic.address}</div>
+  //       {/* 卡片內容 */}
+  //       <div className="max-h-[45vh] overflow-y-auto px-4 py-3 text-sm text-gray-800 space-y-2">
+  //         <div>📍 {selectedClinic.address}</div>
 
-          {/* 聯絡方式 */}
-          {(() => {
-            const { phones, lineIds } = parseContacts(selectedClinic.phone);
-            if (phones.length === 0 && lineIds.length === 0) return null;
-            return (
-              <div className="space-y-1">
-                {phones.length > 0 && (
-                  <div>
-                    <div>📞 電話：</div>
-                    <div className="pl-5 flex flex-col gap-1">
-                      {phones.map((p) => (
-                        <a
-                          key={p.tel}
-                          className="text-blue-600 underline break-all"
-                          href={`tel:${p.tel}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {p.raw}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {lineIds.length > 0 && (
-                  <div>
-                    <div>💬 LINE：</div>
-                    <div className="pl-5 flex flex-col gap-1">
-                      {lineIds.map((id) => {
-                        const url = `https://line.me/R/ti/p/${encodeURIComponent(id)}`;
-                        return (
-                          <a
-                            key={id}
-                            className="text-green-700 underline break-all"
-                            href={url}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            title="開啟 LINE"
-                          >
-                            {id}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+  //         {/* 聯絡方式 */}
+  //         {(() => {
+  //           const { phones, lineIds } = parseContacts(selectedClinic.phone);
+  //           if (phones.length === 0 && lineIds.length === 0) return null;
+  //           return (
+  //             <div className="space-y-1">
+  //               {phones.length > 0 && (
+  //                 <div>
+  //                   <div>📞 電話：</div>
+  //                   <div className="pl-5 flex flex-col gap-1">
+  //                     {phones.map((p) => (
+  //                       <a
+  //                         key={p.tel}
+  //                         className="text-blue-600 underline break-all"
+  //                         href={`tel:${p.tel}`}
+  //                         onClick={(e) => e.stopPropagation()}
+  //                       >
+  //                         {p.raw}
+  //                       </a>
+  //                     ))}
+  //                   </div>
+  //                 </div>
+  //               )}
+  //               {lineIds.length > 0 && (
+  //                 <div>
+  //                   <div>💬 LINE：</div>
+  //                   <div className="pl-5 flex flex-col gap-1">
+  //                     {lineIds.map((id) => {
+  //                       const url = `https://line.me/R/ti/p/${encodeURIComponent(id)}`;
+  //                       return (
+  //                         <a
+  //                           key={id}
+  //                           className="text-green-700 underline break-all"
+  //                           href={url}
+  //                           target="_blank"
+  //                           rel="noreferrer"
+  //                           onClick={(e) => e.stopPropagation()}
+  //                           title="開啟 LINE"
+  //                         >
+  //                           {id}
+  //                         </a>
+  //                       );
+  //                     })}
+  //                   </div>
+  //                 </div>
+  //               )}
+  //             </div>
+  //           );
+  //         })()}
 
-          {selectedClinic.pay_detail && <div>💲 掛號費：{selectedClinic.pay_detail}</div>}
+  //         {selectedClinic.pay_detail && <div>💲 掛號費：{selectedClinic.pay_detail}</div>}
 
-          <div>
-            🖇️ 狀態：{selectedClinic.has_quota ? "✅ 有名額" : "❌ 無名額"}
-            {selectedClinic.teleconsultation ? "（支援遠距）" : ""}
-          </div>
+  //         <div>
+  //           🖇️ 狀態：{selectedClinic.has_quota ? "✅ 有名額" : "❌ 無名額"}
+  //           {selectedClinic.teleconsultation ? "（支援遠距）" : ""}
+  //         </div>
 
-          {(selectedClinic.org_url || selectedClinic.map_url) && (
-            <div className="mt-1 flex gap-2 text-xs">
-              {selectedClinic.org_url && (
-                <a
-                  className="px-2 py-1 text-white bg-pink-300 rounded"
-                  href={selectedClinic.org_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  官網
-                </a>
-              )}
-              {selectedClinic.map_url && (
-                <a
-                  className="px-2 py-1 text-white bg-pink-300 rounded"
-                  href={selectedClinic.map_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  地圖
-                </a>
-              )}
-            </div>
-          )}
+  //         {(selectedClinic.org_url || selectedClinic.map_url) && (
+  //           <div className="mt-1 flex gap-2 text-xs">
+  //             {selectedClinic.org_url && (
+  //               <a
+  //                 className="px-2 py-1 text-white bg-pink-300 rounded"
+  //                 href={selectedClinic.org_url}
+  //                 target="_blank"
+  //                 rel="noreferrer"
+  //               >
+  //                 官網
+  //               </a>
+  //             )}
+  //             {selectedClinic.map_url && (
+  //               <a
+  //                 className="px-2 py-1 text-white bg-pink-300 rounded"
+  //                 href={selectedClinic.map_url}
+  //                 target="_blank"
+  //                 rel="noreferrer"
+  //               >
+  //                 地圖
+  //               </a>
+  //             )}
+  //           </div>
+  //         )}
 
-          <div className="text-[11px] text-gray-400 mt-1">
-            更新：{selectedClinic.edit_date || "尚未更新"}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  //         <div className="text-[11px] text-gray-400 mt-1">
+  //           更新：{selectedClinic.edit_date || "尚未更新"}
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
 
   return (
     <>
