@@ -123,8 +123,18 @@ export default function ClinicsMap(props: {
     const { phones, lineIds } = parseContacts(c.phone);
     return (
       <div className="text-sm">
-        <div className={`font-semibold p-2 rounded-lg mb-2 text-base ${c.has_quota ? "bg-green-200 text-black" : "bg-gray-400 text-white"}`}>
-          {c.org_name}
+        {/* 標題列：診所名 + 距離 Badge */}
+        <div
+            className={`${
+            c.has_quota ? "bg-green-500" : "bg-gray-400"
+            } text-white text-base font-bold px-2 py-2 rounded-t flex items-center justify-between`}
+        >
+            <span className="truncate">{c.org_name}</span>
+            {typeof c.distance === "number" && (
+            <span className="ml-2 inline-flex items-center rounded-full bg-white/90 text-slate-800 px-2 py-0.5 text-[11px] font-semibold">
+                距{c.distance.toFixed(1)} km
+            </span>
+            )}
         </div>
         <div className="text-gray-700 mt-2">
           📍 {c.address}

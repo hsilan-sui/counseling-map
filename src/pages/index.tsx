@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import clinic from "../../public/clinic.json";
 import LeftSidebar from "../components/LeftSidebar";
+import AnnouncementPanel from "@/components/AnnouncementPanel";
 import type { Clinic } from "@/types/clinic";
 
 // ---- local type：在 Home 內部多帶一個 geoCounty，不動全域型別 ----
@@ -222,8 +223,15 @@ export default function Home() {
               setMapCenter([c.lat, c.lng]); // 已為校正座標
             }}
             totalAll={clinicsAll.length}
-            totalHas={clinics.filter(c => c.has_quota).length}
-            totalNone={clinics.filter(c => !c.has_quota).length}
+            totalHas={hasCount}
+            totalNone={noneCount}
+            preferredCounty={preferredCounty}
+            onClearPreferred={() => {
+              setPreferredCounty(null);
+              setSortedByDistance(null);
+            }}
+            filter={filter}
+            onChangeFilter={setFilter}
           />
 
 
@@ -247,21 +255,23 @@ export default function Home() {
                 ))}
               </datalist>
 
+              <div className="flex flex-col items-start gap-2">
               <button
                 className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm shadow-md hover:bg-blue-700"
                 onClick={sortClinicsByDistance}
               >
-                離我最近診所
+                離我最近
               </button>
 
-              {!!(sortedByDistance && sortedByDistance.length) && (
-                <button
-                  className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
-                  onClick={() => setSortedByDistance(null)}
-                >
-                  清除排序
-                </button>
-              )}
+              {Array.isArray(sortedByDistance) && sortedByDistance.length > 0 && (
+              <button
+                className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
+                onClick={() => setSortedByDistance(null)}
+              >
+                清除排序
+              </button>
+            )}
+            </div>
 
               <div className="flex items-center gap-2 bg-white/90 shadow-md rounded-md px-2 py-1">
                 <button
@@ -289,13 +299,11 @@ export default function Home() {
                   無名額（{noneCount}）
                 </button>
 
-                {preferredCounty && (
-                  <span className="ml-3 text-xs px-2 py-1 rounded bg-slate-100 text-slate-600">
-                    已優先顯示：{preferredCounty}
-                  </span>
-                )}
               </div>
+
+              <AnnouncementPanel />   
             </div>
+            
 
             {/* 地圖 */}
             <ClinicsMap

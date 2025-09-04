@@ -7,7 +7,16 @@ type Props = {
   totalAll: number;
   totalHas: number;
   totalNone: number;
+
+  // 與主頁共用的 filter
+  filter: "all" | "has" | "none";
+  onChangeFilter: (f: "all" | "has" | "none") => void;
+
+  preferredCounty?: string | null;
+  onClearPreferred?: () => void;
 };
+
+
 
 export default function LeftSidebar({
   clinics,
@@ -16,16 +25,64 @@ export default function LeftSidebar({
   totalAll,
   totalHas,
   totalNone,
+  preferredCounty,
+  onClearPreferred,
+  filter,
+  onChangeFilter,
 }: Props) {
   return (
     <aside className="w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 p-4 z-[1001] fixed left-0 top-0">
-      <h2 className="text-center text-xl font-bold mb-2 text-gray-800">合作心理諮商所</h2>
-      <hr className="mb-3" />
-      <div className="flex gap-2 text-xs mb-3">
-        <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded">全部 {totalAll}</span>
-        <span className="px-2 py-1 bg-green-100 text-green-700 rounded">有名額 {totalHas}</span>
-        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded">無名額 {totalNone}</span>
+      <h2 className="text-center text-xl font-bold mb-2 text-gray-800">分案合作心理諮商診所</h2>
+      {/* 新增：優先縣市徽章 */}
+      {preferredCounty && (
+      <div className="mt-2 mb-2 flex items-center gap-2">
+        <span className="inline-flex items-center text-xs px-2 py-1 rounded border border-blue-200 bg-blue-50 text-blue-700">
+          已優先顯示：{preferredCounty}
+        </span>
+        {onClearPreferred && (
+          <button
+            type="button"
+            onClick={onClearPreferred}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            清除
+          </button>
+        )}
       </div>
+    )}
+
+      <hr className="mb-3" />
+
+
+      {/* 左欄自己的篩選按鈕（小尺寸） */}
+      <div className="flex items-center gap-1 bg-white shadow-sm rounded-md px-1.5 py-1 mb-2">
+        <button
+          className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
+            filter === "all" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
+          }`}
+          onClick={() => onChangeFilter("all")}
+        >
+          全部（{totalAll}）
+        </button>
+        <button
+          className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
+            filter === "has" ? "bg-green-600 text-white" : "bg-green-100 text-green-700"
+          }`}
+          onClick={() => onChangeFilter("has")}
+        >
+          有名額（{totalHas}）
+        </button>
+        <button
+          className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
+            filter === "none" ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700"
+          }`}
+          onClick={() => onChangeFilter("none")}
+        >
+          無名額（{totalNone}）
+        </button>
+      </div>
+
+
       <hr className="mb-3" />
 
       <ul className="space-y-2">
@@ -42,9 +99,15 @@ export default function LeftSidebar({
               onClick={() => onSelect(c)}
             >
               {/* 標題列 */}
-              <div className={`${c.has_quota ? "bg-green-500" : "bg-gray-400"} text-white text-base font-bold p-2 rounded-t`}>
-                {c.org_name}
-              </div>
+              <div className={`${c.has_quota ? "bg-green-500" : "bg-gray-400"} text-white text-base font-bold px-2 py-2 rounded-t flex items-center justify-between`}>
+              <span>{c.org_name}</span>
+              {typeof c.distance === "number" && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-white/90 text-slate-800 px-2 py-0.5 text-[11px] font-semibold">
+                  距{c.distance.toFixed(1)} km
+                </span>
+              )}
+            </div>
+
 
               {/* 內容 */}
               <div className="p-3 text-sm text-gray-800 space-y-1">
@@ -58,9 +121,6 @@ export default function LeftSidebar({
                 {/* 地址 + 距離 */}
                 <div>
                   📍 {c.address}
-                  {typeof c.distance === "number" && (
-                    <span className="text-gray-500 text-xs">（{c.distance.toFixed(1)} km）</span>
-                  )}
                 </div>
 
                 {/* 掛號費 */}
