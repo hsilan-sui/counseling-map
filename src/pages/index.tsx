@@ -222,9 +222,10 @@ export default function Home() {
               setMapCenter([c.lat, c.lng]); // 已為校正座標
             }}
             totalAll={clinicsAll.length}
-            totalHas={hasCount}
-            totalNone={noneCount}
+            totalHas={clinics.filter(c => c.has_quota).length}
+            totalNone={clinics.filter(c => !c.has_quota).length}
           />
+
 
           {/* 地圖與搜尋 UI */}
           <div className="flex-grow h-screen ml-80 relative">

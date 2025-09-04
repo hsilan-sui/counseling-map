@@ -35,79 +35,92 @@ export default function LeftSidebar({
           return (
             <li
               key={c.id}
-              onClick={() => onSelect(c)}
               className={[
-                "group", // 讓子元素也能感知 hover
-                "rounded-md shadow border transition overflow-hidden",
-                "cursor-pointer", // 滑鼠指標變手指
-                selectedId === c.id
-                  ? "bg-blue-50 text-blue-800 border-blue-300"
-                  : "bg-white text-blue-800 hover:bg-slate-20 border-gray-200",
+                "cursor-pointer text-sm rounded-md px-2 py-2 transition-colors bg-white shadow border border-gray-200 mb-4 hover:shadow-md",
+                active ? "bg-blue-50 text-blue-800 border border-blue-200" : "text-gray-700 hover:bg-slate-50",
               ].join(" ")}
+              onClick={() => onSelect(c)}
             >
-
-              {/* 標題列：診所名 + 顏色區分 */}
-              <div
-                className={`${
-                  c.has_quota ? "bg-green-200" : "bg-gray-400"
-                } text-black text-base font-bold p-2 rounded-t`}
-              >
+              {/* 標題列 */}
+              <div className={`${c.has_quota ? "bg-green-500" : "bg-gray-400"} text-white text-base font-bold p-2 rounded-t`}>
                 {c.org_name}
               </div>
 
-              {/* 主內容區 */}
+              {/* 內容 */}
               <div className="p-3 text-sm text-gray-800 space-y-1">
-                <div className="font-bold">{c.phone || "未提供電話"}</div>
+                {/* 電話 */}
+                {c.phone && (
+                  <div>
+                    📞 <a className="text-blue-600 underline" href={`tel:${c.phone}`}>{c.phone}</a>
+                  </div>
+                )}
+
+                {/* 地址 + 距離 */}
                 <div>
-                  {c.address}
-                  {"distance" in c && typeof (c as any).distance === "number" && (
-                    <span className="text-gray-500 text-xs">
-                      {" "}
-                      ・{(c as any).distance.toFixed(1)} km
-                    </span>
+                  📍 {c.address}
+                  {typeof c.distance === "number" && (
+                    <span className="text-gray-500 text-xs">（{c.distance.toFixed(1)} km）</span>
                   )}
                 </div>
-              </div>
 
-              {/* 名額區塊（只有 has_quota 才顯示） */}
-              {c.has_quota && (
-                <div className="grid grid-cols-2 gap-2 mt-2 text-white font-bold text-sm px-3">
-                  <div
-                    className={`${
-                      c.this_week > 0 ? "bg-blue-500" : "bg-gray-400"
-                    } rounded px-2 py-1 text-center`}
-                  >
-                    本週名額：{c.this_week}
+                {/* 掛號費 */}
+                {c.pay_detail && (
+                  <div>
+                    💲 掛號費：{c.pay_detail}
                   </div>
-                  <div
-                    className={`${
-                      c.next_week > 0 ? "bg-yellow-500" : "bg-gray-400"
-                    } rounded px-2 py-1 text-center`}
-                  >
-                    下週名額：{c.next_week}
-                  </div>
-                  <div
-                    className={`${
-                      c.next_2_week > 0 ? "bg-teal-500" : "bg-gray-400"
-                    } rounded px-2 py-1 text-center`}
-                  >
-                    第三週：{c.next_2_week}
-                  </div>
-                  <div
-                    className={`${
-                      c.next_3_week > 0 ? "bg-purple-500" : "bg-gray-400"
-                    } rounded px-2 py-1 text-center`}
-                  >
-                    第四週：{c.next_3_week}
-                  </div>
+                )}
+
+                {/* 名額狀態 */}
+                <div>
+                  🖇️ 狀態：{c.has_quota ? "✅ 有名額" : "❌ 無名額"}
+                  {c.teleconsultation ? "（支援遠距）" : ""}
                 </div>
-              )}
 
-              {/* 更新時間 */}
-              <div className="text-[11px] text-gray-400 mt-2 px-3">
-                更新：{c.edit_date || "未提供"}
+                {/* 本月各週名額（僅在 has_quota 為 true 顯示） */}
+                {c.has_quota && (
+              <div className="flex justify-between mt-2 text-white font-bold text-xs">
+                {[
+                  { label: "本週", value: c.this_week, color: "bg-blue-500" },
+                  { label: "下週", value: c.next_week, color: "bg-yellow-500" },
+                  { label: "第3週", value: c.next_2_week, color: "bg-teal-500" },
+                  { label: "第4週", value: c.next_3_week, color: "bg-purple-500" },
+                ].map(({ label, value, color }) => (
+                  <div
+                    key={label}
+                    className={`flex flex-col items-center justify-center w-[60px] h-[60px] rounded-full text-center ${
+                      value > 0 ? color : "bg-gray-300"
+                    }`}
+                  >
+                    <div className="text-[10px]">{label}</div>
+                    <div className="text-lg">{value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+
+
+                {/* 連結按鈕 */}
+                <div className="mt-2 flex gap-2 text-xs">
+                  {c.org_url && (
+                    <a className="px-2 py-1 text-white bg-pink-300 rounded" href={c.org_url} target="_blank" rel="noreferrer">
+                      官網
+                    </a>
+                  )}
+                  {c.map_url && (
+                    <a className="px-2 py-1 text-white bg-pink-300 rounded" href={c.map_url} target="_blank" rel="noreferrer">
+                      地圖
+                    </a>
+                  )}
+                </div>
+
+                {/* 最後更新時間 */}
+                <div className="text-[11px] text-gray-400 mt-2">
+                  更新：{c.edit_date || '尚未更新'}
+                </div>
               </div>
             </li>
+
           );
         })}
       </ul>
