@@ -224,7 +224,9 @@ export default function ClinicsMap(props: {
           }}
           eventHandlers={{ click: () => onSelect?.(c) }}
         >
-          <Popup>{renderPopup(c)}</Popup>
+          <Popup autoPan keepInView autoPanPadding={[24, 24]} autoPanPaddingTopLeft={[24, 100]}>
+            {renderPopup(c)}
+          </Popup>
         </Marker>
       ))}
     </MapContainer>

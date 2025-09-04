@@ -1,26 +1,25 @@
 /**
  * 首頁 Home：清單、搜尋、篩選、距離排序、定位、地圖（先鎖定縣市再排序）
  */
+const ANNOUNCE_KEY = "announce:v2-2025-09-04"; // 換一個新 key
+
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import clinic from "../../public/clinic.json";
 import LeftSidebar from "../components/LeftSidebar";
+import AnnouncementPanel from "@/components/AnnouncementPanel";
 import type { Clinic } from "@/types/clinic";
 
-// 讀入時自動補上 id（從 1 起）
-const clinicsAll: Clinic[] = ((clinic as any).rows || []).map(
-  (c: any, i: number) => ({ id: String(i + 1), ...c })
-);
+// ---- local type：在 Home 內部多帶一個 geoCounty，不動全域型別 ----
+type ClinicWithGeo = Clinic & { geoCounty: string };
 
-// —— 工具：距離、經緯度校正（處理 lat/lng 被寫反）、臺/台 正規化 —— //
+// ---- 工具：距離、經緯度校正（處理 lat/lng 被寫反） ----
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (x: number) => (x * Math.PI) / 180;
   const R = 6371;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 const isTWLat = (lat: number) => lat >= 21 && lat <= 26.5;
@@ -32,35 +31,59 @@ function normalizeLatLng(lat: number, lng: number) {
   if (!ok && swappedOk) return { lat: lng, lng: lat }; // 交換
   return { lat, lng };
 }
-// 統一「台/臺」——只把開頭的「台」換成「臺」
-const normCountyName = (name?: string | null) =>
-  (name || "").replace(/^台/, "臺");
 
-// 由使用者座標推估所在縣市：取附近(Top20)做多數決；樣本少時用最近一筆
-function inferCountyFromLocation(ulat: number, ulng: number): string | null {
-  const aug = clinicsAll
-    .map((c) => {
-      const p = normalizeLatLng(c.lat, c.lng);
-      return { county: normCountyName(c.county), d: haversineDistance(ulat, ulng, p.lat, p.lng) };
-    })
-    .sort((a, b) => a.d - b.d);
-
-  if (!aug.length) return null;
-
-  const top = aug.slice(0, 20);
-  const within15 = top.filter((x) => x.d <= 15); // 15km 內
-  const pickFrom = within15.length >= 3 ? within15 : top.slice(0, 5);
-
-  const freq = new Map<string, number>();
-  pickFrom.forEach((x) => freq.set(x.county, (freq.get(x.county) ?? 0) + 1));
-
-  let best: string | null = null;
-  let bestN = -1;
-  for (const [k, v] of freq.entries()) {
-    if (v > bestN) { best = k; bestN = v; }
+// ---- 22 縣市重心（大略值）& 用「座標」推縣市（忽略 JSON 的 county） ----
+const COUNTY_CENTROIDS = [
+  { name: "基隆市", lat: 25.128, lng: 121.741 },
+  { name: "臺北市", lat: 25.037, lng: 121.564 },
+  { name: "新北市", lat: 25.016, lng: 121.465 },
+  { name: "桃園市", lat: 24.993, lng: 121.301 },
+  { name: "新竹市", lat: 24.804, lng: 120.971 },
+  { name: "新竹縣", lat: 24.703, lng: 121.125 },
+  { name: "苗栗縣", lat: 24.56, lng: 120.82 },
+  { name: "臺中市", lat: 24.147, lng: 120.673 },
+  { name: "彰化縣", lat: 24.075, lng: 120.542 },
+  { name: "南投縣", lat: 23.96, lng: 120.971 },
+  { name: "雲林縣", lat: 23.707, lng: 120.538 },
+  { name: "嘉義市", lat: 23.48, lng: 120.449 },
+  { name: "嘉義縣", lat: 23.458, lng: 120.255 },
+  { name: "臺南市", lat: 23.0, lng: 120.227 },
+  { name: "高雄市", lat: 22.627, lng: 120.301 },
+  { name: "屏東縣", lat: 22.551, lng: 120.548 },
+  { name: "宜蘭縣", lat: 24.702, lng: 121.738 },
+  { name: "花蓮縣", lat: 23.991, lng: 121.601 },
+  { name: "臺東縣", lat: 22.984, lng: 121.332 },
+  { name: "澎湖縣", lat: 23.571, lng: 119.579 },
+  { name: "金門縣", lat: 24.436, lng: 118.318 },
+  { name: "連江縣", lat: 26.16, lng: 119.95 },
+];
+function countyByCoords(lat: number, lng: number): string {
+  let best = COUNTY_CENTROIDS[0].name;
+  let bestD = Infinity;
+  for (const c of COUNTY_CENTROIDS) {
+    const d = haversineDistance(lat, lng, c.lat, c.lng);
+    if (d < bestD) {
+      bestD = d;
+      best = c.name;
+    }
   }
-  return best ?? normCountyName(top[0].county);
+  return best;
 }
+
+// 讀入時：補 id + 校正座標 + 帶上 geoCounty（之後排序/過濾都用它）
+const clinicsAll: ClinicWithGeo[] = ((clinic as any).rows || []).map((c: any, i: number) => {
+  const pos = normalizeLatLng(Number(c.lat), Number(c.lng));
+  return {
+    id: String(i + 1),
+    ...c,
+    lat: pos.lat,
+    lng: pos.lng,
+    geoCounty: countyByCoords(pos.lat, pos.lng),
+  } as ClinicWithGeo;
+});
+
+// 距離上限（km）：避免極端錯誤座標混入
+const DIST_LIMIT_KM = 30;
 
 // 動態載入地圖（Leaflet 需關 SSR）
 const ClinicsMap = dynamic(() => import("../components/Map"), { ssr: false });
@@ -74,23 +97,29 @@ export default function Home() {
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
 
-  // 顯示在 UI 的「推測縣市」（僅顯示用）
+  // 僅顯示用
   const [preferredCounty, setPreferredCounty] = useState<string | null>(null);
 
-  // 距離排序結果（直接存陣列；其中 lat/lng 已替換為校正後）
-  const [sortedByDistance, setSortedByDistance] = useState<Clinic[] | null>(null);
+  // 距離排序結果（直接存陣列；lat/lng 已是校正後）
+  const [sortedByDistance, setSortedByDistance] = useState<ClinicWithGeo[] | null>(null);
+
+  // 公告顯示狀態（首次顯示一次）
+const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   // 篩選（依 has_quota/none）
-  const clinics = useMemo(() => {
+  const clinics = useMemo<ClinicWithGeo[]>(() => {
     if (filter === "has") return clinicsAll.filter((c) => c.has_quota);
     if (filter === "none") return clinicsAll.filter((c) => !c.has_quota);
     return clinicsAll;
   }, [filter]);
 
   // 顯示（排序優先）
-  const clinicsToShow = useMemo(() => sortedByDistance ?? clinics, [clinics, sortedByDistance]);
+  const clinicsToShow = useMemo<ClinicWithGeo[]>(
+    () => sortedByDistance ?? clinics,
+    [clinics, sortedByDistance]
+  );
 
-  // 計數
+  // 計數（全量）
   const hasCount = useMemo(() => clinicsAll.filter((c) => c.has_quota).length, []);
   const noneCount = useMemo(() => clinicsAll.filter((c) => !c.has_quota).length, []);
 
@@ -104,6 +133,87 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
+  // 啟動一次：稽核資料
+  useEffect(() => {
+    const wrongs = clinicsAll.filter((c) => c.county && c.geoCounty && c.county !== c.geoCounty);
+    if (wrongs.length) {
+      console.log(
+        "⚠️ JSON 內『地址縣市』與『座標推縣市』不一致的筆數 =",
+        wrongs.length,
+        wrongs.slice(0, 5).map((x) => ({
+          name: x.org_name,
+          county_text: x.county,
+          county_geo: x.geoCounty,
+          lat: x.lat,
+          lng: x.lng,
+        }))
+      );
+    }
+  }, []);
+
+  // helper：用指定座標排序最近診所 + 選取 + 置中
+  const sortClinicsByDistanceFrom = (ulat: number, ulng: number) => {
+    const userCounty = countyByCoords(ulat, ulng);
+    setPreferredCounty(userCounty);
+
+    const sameCounty = clinics.filter((c) => c.geoCounty === userCounty);
+    const pool = sameCounty.length ? sameCounty : clinics;
+
+    const sorted = [...pool]
+      .map((c) => ({ ...c, distance: haversineDistance(ulat, ulng, c.lat, c.lng) }))
+      .filter((c) => c.distance! <= DIST_LIMIT_KM)
+      .sort((a, b) => a.distance! - b.distance!);
+
+    setSortedByDistance(sorted);
+
+    if (sorted.length) {
+      const first = sorted[0];
+      setSelectedClinicId(first.id);
+      setMapCenter([first.lat, first.lng]);
+    }
+  };
+
+  // 「離我最近」按鈕（使用已知 userLatLng）
+  const sortClinicsByDistance = () => {
+    if (!userLatLng) {
+      alert("請先允許定位功能");
+      return;
+    }
+    const [ulat, ulng] = userLatLng;
+    sortClinicsByDistanceFrom(ulat, ulng);
+  };
+
+  // 首次載入：顯示公告（只一次） + 請求定位並自動排序最近診所
+  useEffect(() => {
+    const ANNOUNCE_KEY = "announce:v1";
+    try {
+      const seen = typeof window !== "undefined" && localStorage.getItem(ANNOUNCE_KEY);
+      if (!seen) {
+        setShowAnnouncement(true);
+        localStorage.setItem(ANNOUNCE_KEY, "1");
+      }
+    } catch {
+      // 可能是無痕模式導致 localStorage 例外，忽略
+    }
+
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          const { latitude, longitude } = coords;
+          setUserLatLng([latitude, longitude]);
+          // 直接用拿到的座標進行排序（避免 setState 非同步）
+          sortClinicsByDistanceFrom(latitude, longitude);
+        },
+        (err) => {
+          console.warn("定位失敗/被拒：", err.message);
+          if (!mapCenter) setMapCenter([23.6978, 120.9605]); // 台灣中心
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 搜尋（移動中心採用校正後座標）
   const handleSearch = () => {
     const kw = searchInput.trim();
@@ -115,50 +225,7 @@ export default function Home() {
     if (idx >= 0) {
       const found = clinicsToShow[idx];
       setSelectedClinicId(found.id);
-      const pos = normalizeLatLng(found.lat, found.lng);
-      setMapCenter([pos.lat, pos.lng]);
-    }
-  };
-
-  // 「離我最近」：先鎖定縣市，再只在該縣市內做距離排序（距離與座標都使用校正後）
-  const sortClinicsByDistance = () => {
-    if (!userLatLng) {
-      alert("請先允許定位功能");
-      return;
-    }
-    const [ulat, ulng] = userLatLng;
-
-    // 1) 推估縣市（用全量資料較穩定）
-    const county = inferCountyFromLocation(ulat, ulng);
-    const countyNorm = county ? normCountyName(county) : null;
-    setPreferredCounty(countyNorm);
-
-    // 2) 在「目前篩選後的清單」中，限制同縣市（若為空則退回整個篩選清單）
-    const base = clinics;
-    const inCounty = countyNorm
-      ? base.filter((c) => normCountyName(c.county) === countyNorm)
-      : base;
-    const candidates = inCounty.length ? inCounty : base;
-
-    // 3) 以校正後座標計算距離並排序；把校正後座標和距離寫入暫存陣列（不改原 JSON）
-    const sorted = [...candidates]
-      .map((c) => {
-        const pos = normalizeLatLng(c.lat, c.lng);
-        return {
-          ...c,
-          lat: pos.lat,
-          lng: pos.lng,
-          distance: haversineDistance(ulat, ulng, pos.lat, pos.lng),
-        };
-      })
-      .sort((a, b) => (a.distance! - b.distance!));
-
-    setSortedByDistance(sorted);
-
-    if (sorted.length) {
-      const first = sorted[0];
-      setSelectedClinicId(first.id);
-      setMapCenter([first.lat, first.lng]); // first 已是校正後座標
+      setMapCenter([found.lat, found.lng]); // 已為校正座標
     }
   };
 
@@ -172,16 +239,23 @@ export default function Home() {
             selectedId={selectedClinicId}
             onSelect={(c) => {
               setSelectedClinicId(c.id);
-              const pos = normalizeLatLng(c.lat, c.lng);
-              setMapCenter([pos.lat, pos.lng]);
+              setMapCenter([c.lat, c.lng]); // 已為校正座標
             }}
             totalAll={clinicsAll.length}
             totalHas={hasCount}
             totalNone={noneCount}
+            preferredCounty={preferredCounty}
+            onClearPreferred={() => {
+              setPreferredCounty(null);
+              setSortedByDistance(null);
+            }}
+            filter={filter}
+            onChangeFilter={setFilter}
           />
 
           {/* 地圖與搜尋 UI */}
           <div className="flex-grow h-screen ml-80 relative">
+            {/* 上方搜尋 & 篩選 */}
             <div className="absolute z-[1000] top-5 left-28 flex gap-2 items-center">
               <input
                 list="clinic-suggestions"
@@ -200,21 +274,23 @@ export default function Home() {
                 ))}
               </datalist>
 
-              <button
-                className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm shadow-md hover:bg-blue-700"
-                onClick={sortClinicsByDistance}
-              >
-                離我最近診所
-              </button>
-
-              {!!(sortedByDistance && sortedByDistance.length) && (
+              <div className="flex flex-col items-start gap-2">
                 <button
-                  className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
-                  onClick={() => setSortedByDistance(null)}
+                  className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm shadow-md hover:bg-blue-700"
+                  onClick={sortClinicsByDistance}
                 >
-                  清除排序
+                  離我最近
                 </button>
-              )}
+
+                {Array.isArray(sortedByDistance) && sortedByDistance.length > 0 && (
+                  <button
+                    className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
+                    onClick={() => setSortedByDistance(null)}
+                  >
+                    清除排序
+                  </button>
+                )}
+              </div>
 
               <div className="flex items-center gap-2 bg-white/90 shadow-md rounded-md px-2 py-1">
                 <button
@@ -241,14 +317,18 @@ export default function Home() {
                 >
                   無名額（{noneCount}）
                 </button>
-
-                {/* 顯示推測縣市（可拿掉） */}
-                {preferredCounty && (
-                  <span className="ml-3 text-xs px-2 py-1 rounded bg-slate-100 text-slate-600">
-                    已優先顯示：{preferredCounty}
-                  </span>
-                )}
               </div>
+            </div>
+
+            {/* 底部置中：公告按鈕（使用者可自行開啟） */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1100]">
+              <button
+                onClick={() => setShowAnnouncement(true)}
+                className="px-4 py-2 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm"
+                title="查看公告"
+              >
+                📢 公告訊息
+              </button>
             </div>
 
             {/* 地圖 */}
@@ -258,14 +338,36 @@ export default function Home() {
               center={mapCenter}
               onSelect={(c) => {
                 setSelectedClinicId(c.id);
-                const pos = normalizeLatLng(c.lat, c.lng);
-                setMapCenter([pos.lat, pos.lng]);
+                setMapCenter([c.lat, c.lng]);
               }}
               onUserLocate={(lat, lng) => setUserLatLng([lat, lng])}
             />
           </div>
         </div>
       </div>
+
+      {/* 置中公告（首次自動顯示，之後可手動開啟） */}
+      {showAnnouncement && (
+  <div className="fixed inset-0 z-[3000] flex items-center justify-center">
+    <div className="absolute inset-0 bg-black/40" onClick={() => setShowAnnouncement(false)} />
+    <div className="relative w-full max-w-xl mx-4">
+      <div className="bg-white rounded-2xl shadow-xl p-4">
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowAnnouncement(false)}
+            className="text-slate-500 hover:text-slate-700 text-xl leading-none"
+            aria-label="關閉公告"
+            title="關閉"
+          >
+            ×
+          </button>
+        </div>
+        {/* 只放內容版 */}
+        <AnnouncementPanel />
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
