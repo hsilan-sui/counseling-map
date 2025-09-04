@@ -10,7 +10,7 @@ const taipeiCenter: LatLngExpression = [25.0478, 121.5319];
 function useIsNarrow(bp = 1170) {
     const [narrow, setNarrow] = useState(false);
     useEffect(() => {
-      const mq = window.matchMedia(`(max-width:${bp - 1}px)`); // ← 改成 <1170
+        const mq = window.matchMedia(`(max-width:${bp}px)`);
       const onChange = () => setNarrow(mq.matches);
       onChange();
       mq.addEventListener("change", onChange);
