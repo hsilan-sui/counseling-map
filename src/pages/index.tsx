@@ -469,26 +469,30 @@ export default function Home() {
 
       {/* 置中公告（首次自動顯示，之後可手動開啟） */}
       {showAnnouncement && (
-        <div className="fixed inset-0 z-[3000] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={closeAnnouncement} />
-          <div className="relative w-full max-w-xl mx-4">
-            <div className="bg-white rounded-2xl shadow-xl p-4">
-              <div className="flex justify-end">
-                <button
-                  onClick={closeAnnouncement}
-                  className="text-slate-500 hover:text-slate-700 text-xl leading-none"
-                  aria-label="關閉公告"
-                  title="關閉"
-                >
-                  ×
-                </button>
-              </div>
-              {/* 只放內容版 */}
+      <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 max-[768px]:items-start max-[768px]:pt-12">
+        <div className="absolute inset-0 bg-black/40" onClick={closeAnnouncement} />
+        <div className="relative w-full max-w-xl">
+          <div className="bg-white rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
+            {/* sticky header（關閉鈕永遠看得到） */}
+            <div className="sticky top-0 z-10 flex justify-end p-3 bg-white border-b">
+              <button
+                onClick={closeAnnouncement}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 shadow-md"
+                aria-label="關閉公告"
+                title="關閉"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* 內容要包在可捲動容器裡 */}
+            <div className="p-4">
               <AnnouncementPanel />
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
     </div>
   );
 }

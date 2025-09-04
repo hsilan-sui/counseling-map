@@ -2,15 +2,17 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from "react-le
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { LatLngExpression } from "leaflet";
 import { Icon, Marker as LeafletMarker } from "leaflet";
+import type { LeafletMouseEvent } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Clinic } from "@/types/clinic";
 
 const taipeiCenter: LatLngExpression = [25.0478, 121.5319];
 
-function useIsNarrow(bp = 1170) {
+
+function useIsNarrow(bp = 1169) {           // ⭐ 改成 1169
     const [narrow, setNarrow] = useState(false);
     useEffect(() => {
-        const mq = window.matchMedia(`(max-width:${bp}px)`);
+      const mq = window.matchMedia(`(max-width:${bp}px)`);
       const onChange = () => setNarrow(mq.matches);
       onChange();
       mq.addEventListener("change", onChange);
@@ -93,9 +95,11 @@ export default function ClinicsMap(props: {
   // 用 Map<id, ref>，避免排序後索引錯位
   const markerRefs = useRef<Map<string, LeafletMarker>>(new Map());
 
-  const isNarrow = useIsNarrow(1170);
-  const SAFE_TOP = isNarrow ? Math.max(topSafePx ?? 0, 180) : 24; // 小於1170時至少 180px
-  const POPUP_OFFSET_Y = isNarrow ? 12 : 0;                       // 卡片再往下移一些
+  const isNarrow = useIsNarrow(1169);
+  // 讓上方安全距直接以父層傳入的 topSafePx 為主，並給個最低值
+    const SAFE_TOP = Math.max(topSafePx ?? 0, isNarrow ? 180 : 100);
+    //const SAFE_TOP = Math.max(topSafePx ?? 0, isNarrow ? 120 : 84);
+    const POPUP_OFFSET_Y = isNarrow ? 16 : 8;
 
   
   // 抓定位
@@ -258,7 +262,7 @@ export default function ClinicsMap(props: {
       ) : (
         <Marker position={taipeiCenter} icon={userIcon}><Popup>尚未取得定位，顯示預設位置</Popup></Marker>
       )}
-
+       <div className="relative max-[1200px]:translate-y-20">
       {/* 診所標記（座標已在 Home 時就校正過了，這裡直接用） */}
       {visibleClinics.map((c) => (
         <Marker
@@ -271,18 +275,25 @@ export default function ClinicsMap(props: {
           }}
           eventHandlers={{ click: () => onSelect?.(c) }}
         >
+        
           <Popup
             autoPan
             keepInView
             maxWidth={isNarrow ? 280 : 360}
-            autoPanPaddingTopLeft={[16, SAFE_TOP]}
-  autoPanPaddingBottomRight={[16, 24]}
-  offset={[0, POPUP_OFFSET_Y]}
+            autoPanPadding={[16, SAFE_TOP]}              // ⭐ 新增：整體 padding
+            // autoPanPaddingTopLeft={[16, SAFE_TOP]}       // 仍保留
+            autoPanPaddingBottomRight={[16, 24]}
+            offset={[0, POPUP_OFFSET_Y]}
             >
-            {renderPopup(c)}
+            
+                {renderPopup(c)}
+            
           </Popup>
+        
         </Marker>
+    
       ))}
+      </div>
     </MapContainer>
 
   );
