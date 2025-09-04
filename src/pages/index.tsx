@@ -3,10 +3,13 @@
  */
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState, useRef } from "react";
-import clinic from "../../public/clinic.json";
+import clinic from "@/data/clinic.json";
 import LeftSidebar from "../components/LeftSidebar";
 import AnnouncementPanel from "@/components/AnnouncementPanel";
 import type { Clinic } from "@/types/clinic";
+
+// 動態載入地圖（Leaflet 需關 SSR）
+const ClinicsMap = dynamic(() => import("../components/Map"), { ssr: false });
 
 // ✅ 宣告放在 import 之後
 const ANNOUNCE_KEY = "announce:v2-2025-09-04";
@@ -100,8 +103,6 @@ const clinicsAll: ClinicWithGeo[] = ((clinic as any).rows || []).map((c: any, i:
 // 距離上限（km）：避免極端錯誤座標混入
 const DIST_LIMIT_KM = 30;
 
-// 動態載入地圖（Leaflet 需關 SSR）
-const ClinicsMap = dynamic(() => import("../components/Map"), { ssr: false });
 
 export default function Home() {
   const [searchInput, setSearchInput] = useState("");
