@@ -50,7 +50,7 @@ export default function LeftSidebar({
 }: Props) {
   return (
     <aside className="w-80 h-screen overflow-y-auto bg-white border-r border-gray-200 p-4 z-[1001] fixed left-0 top-0">
-      <h2 className="text-center text-xl font-bold mb-2 text-gray-800">方案合作心理諮商診所</h2>
+      <h2 className="text-center text-xl font-bold mb-2 text-gray-800">分案合作心理諮商診所</h2>
 
       {/* 新增：優先縣市徽章 */}
       {preferredCounty && (
@@ -117,7 +117,6 @@ export default function LeftSidebar({
               onClick={() => onSelect(c)}
             >
               {/* 標題列 */}
-              {/* 標題列：診所名稱 (永遠顯示) */}
               <div className={`${c.has_quota ? "bg-green-500" : "bg-gray-400"} text-white text-base font-bold px-2 py-2 rounded-t flex items-center justify-between`}>
                 <span className="truncate">{c.org_name}</span>
                 {typeof c.distance === "number" && (
@@ -128,7 +127,7 @@ export default function LeftSidebar({
               </div>
 
               {/* 內容 */}
-              <div className="hidden md:block p-3 text-sm text-gray-800 space-y-2">
+              <div className="p-3 text-sm text-gray-800 space-y-2">
                 {/* 地址 */}
                 <div>📍 {c.address}</div>
 

@@ -1,8 +1,6 @@
 /**
  * 首頁 Home：清單、搜尋、篩選、距離排序、定位、地圖（先鎖定縣市再排序）
  */
-const ANNOUNCE_KEY = "announce:v2-2025-09-04"; // 換一個新 key
-
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import clinic from "../../public/clinic.json";
@@ -10,10 +8,13 @@ import LeftSidebar from "../components/LeftSidebar";
 import AnnouncementPanel from "@/components/AnnouncementPanel";
 import type { Clinic } from "@/types/clinic";
 
+// ✅ 宣告放在 import 之後
+const ANNOUNCE_KEY = "announce:v2-2025-09-04";
+
 // ---- local type：在 Home 內部多帶一個 geoCounty，不動全域型別 ----
 type ClinicWithGeo = Clinic & { geoCounty: string };
 
-// ---- 工具：距離、經緯度校正（處理 lat/lng 被寫反） ----
+// ---- 工具：距離、經緯度校正（處理 lat/lng 被寫反）----
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (x: number) => (x * Math.PI) / 180;
   const R = 6371;
@@ -32,7 +33,7 @@ function normalizeLatLng(lat: number, lng: number) {
   return { lat, lng };
 }
 
-// ---- 22 縣市重心（大略值）& 用「座標」推縣市（忽略 JSON 的 county） ----
+// ---- 22 縣市重心（大略值）& 用「座標」推縣市（忽略 JSON 的 county）----
 const COUNTY_CENTROIDS = [
   { name: "基隆市", lat: 25.128, lng: 121.741 },
   { name: "臺北市", lat: 25.037, lng: 121.564 },
@@ -90,8 +91,11 @@ const ClinicsMap = dynamic(() => import("../components/Map"), { ssr: false });
 
 export default function Home() {
   const [searchInput, setSearchInput] = useState("");
-  const [filter, setFilter] = useState<"all" | "has" | "none">("all");
+  //預設顯示All
+  //const [filter, setFilter] = useState<"all" | "has" | "none">("all");
 
+  //預設顯示 有名額 
+  const [filter, setFilter] = useState<"all" | "has" | "none">("has");
   // 分離語意
   const [userLatLng, setUserLatLng] = useState<[number, number] | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
@@ -104,7 +108,7 @@ export default function Home() {
   const [sortedByDistance, setSortedByDistance] = useState<ClinicWithGeo[] | null>(null);
 
   // 公告顯示狀態（首次顯示一次）
-const [showAnnouncement, setShowAnnouncement] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   // 篩選（依 has_quota/none）
   const clinics = useMemo<ClinicWithGeo[]>(() => {
@@ -183,20 +187,16 @@ const [showAnnouncement, setShowAnnouncement] = useState(false);
     sortClinicsByDistanceFrom(ulat, ulng);
   };
 
-  // 首次載入：顯示公告（只一次） + 請求定位並自動排序最近診所
+  // ✅ 首次載入：只檢查；不要在這裡寫入 localStorage（Strict Mode 兩次執行會吃掉首次顯示）
   useEffect(() => {
-    const ANNOUNCE_KEY = "announce:v1";
     try {
-      const seen = typeof window !== "undefined" && localStorage.getItem(ANNOUNCE_KEY);
-      if (!seen) {
-        setShowAnnouncement(true);
-        localStorage.setItem(ANNOUNCE_KEY, "1");
-      }
+      const seen = localStorage.getItem(ANNOUNCE_KEY);
+      if (seen !== "1") setShowAnnouncement(true);
     } catch {
-      // 可能是無痕模式導致 localStorage 例外，忽略
+      // 無痕模式可能報錯，忽略
     }
 
-    if (typeof window !== "undefined" && "geolocation" in navigator) {
+    if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
           const { latitude, longitude } = coords;
@@ -214,6 +214,15 @@ const [showAnnouncement, setShowAnnouncement] = useState(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 👍 開關公告的處理：關閉時才標記已讀
+  const openAnnouncement = () => setShowAnnouncement(true);
+  const closeAnnouncement = () => {
+    try {
+      localStorage.setItem(ANNOUNCE_KEY, "1");
+    } catch {}
+    setShowAnnouncement(false);
+  };
+
   // 搜尋（移動中心採用校正後座標）
   const handleSearch = () => {
     const kw = searchInput.trim();
@@ -226,6 +235,10 @@ const [showAnnouncement, setShowAnnouncement] = useState(false);
       const found = clinicsToShow[idx];
       setSelectedClinicId(found.id);
       setMapCenter([found.lat, found.lng]); // 已為校正座標
+      setSearchInput("");                   // ✅ 成功後清空輸入框
+    } else {
+      // （可選）找不到時給點回饋
+      alert("找不到符合的診所或地址");
     }
   };
 
@@ -233,6 +246,7 @@ const [showAnnouncement, setShowAnnouncement] = useState(false);
     <div className="flex flex-col items-center justify-center h-screen">
       <div className="h-screen w-full">
         <div className="flex">
+          <div>
           {/* 左側清單 */}
           <LeftSidebar
             clinics={clinicsToShow}
@@ -252,79 +266,104 @@ const [showAnnouncement, setShowAnnouncement] = useState(false);
             filter={filter}
             onChangeFilter={setFilter}
           />
-
+          </div>
           {/* 地圖與搜尋 UI */}
           <div className="flex-grow h-screen ml-80 relative">
+            {/* Rwd_搜尋_start */}
+         
             {/* 上方搜尋 & 篩選 */}
             <div className="absolute z-[1000] top-5 left-28 flex gap-2 items-center">
-              <input
-                list="clinic-suggestions"
-                className="text-black text-base md:text-lg bg-white shadow-lg rounded-lg w-80 border border-slate-300 p-2"
-                type="text"
-                placeholder="搜尋診所名稱 或 地址"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSearch();
+              {/* 合體：輸入框 + 內嵌按鈕 */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSearch();
                 }}
-              />
+                className="relative"
+              >
+                <input
+                  list="clinic-suggestions"
+                  className="text-black text-base md:text-lg bg-white shadow-lg rounded-lg w-80 border border-slate-300 p-2 pr-24"
+                  type="text"
+                  placeholder="搜尋診所名稱 或 地址"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  aria-label="搜尋診所名稱或地址"
+                />
+                {/* 內嵌在輸入框右側的搜尋按鈕 */}
+                <button
+                  type="submit"
+                  disabled={!searchInput.trim()}
+                  className="absolute right-1 top-1 bottom-1 px-3 rounded-md bg-slate-800 text-white text-sm shadow-md hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="搜尋"
+                  aria-label="搜尋"
+                >
+                  🔍 搜尋
+                </button>
+              </form>
+              
+             
               <datalist id="clinic-suggestions">
                 {clinics.map((c) => (
                   <option key={c.id} value={c.org_name} />
                 ))}
               </datalist>
-
-              <div className="flex flex-col items-start gap-2">
-                <button
-                  className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm shadow-md hover:bg-blue-700"
-                  onClick={sortClinicsByDistance}
-                >
-                  離我最近
-                </button>
-
-                {Array.isArray(sortedByDistance) && sortedByDistance.length > 0 && (
+              {/* Rwd_搜尋_end */}
+              {/* Rwd_離我最近_start */}
+              <div>
+                <div className="flex flex-col items-start gap-2">
                   <button
-                    className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
-                    onClick={() => setSortedByDistance(null)}
+                    className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm shadow-md hover:bg-blue-700"
+                    onClick={sortClinicsByDistance}
                   >
-                    清除排序
+                    離我最近
                   </button>
-                )}
-              </div>
 
-              <div className="flex items-center gap-2 bg-white/90 shadow-md rounded-md px-2 py-1">
-                <button
-                  className={`px-2 py-1 rounded text-sm ${
-                    filter === "all" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
-                  }`}
-                  onClick={() => setFilter("all")}
-                >
-                  全部
-                </button>
-                <button
-                  className={`px-2 py-1 rounded text-sm ${
-                    filter === "has" ? "bg-green-600 text-white" : "bg-green-100 text-green-700"
-                  }`}
-                  onClick={() => setFilter("has")}
-                >
-                  有名額（{hasCount}）
-                </button>
-                <button
-                  className={`px-2 py-1 rounded text-sm ${
-                    filter === "none" ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700"
-                  }`}
-                  onClick={() => setFilter("none")}
-                >
-                  無名額（{noneCount}）
-                </button>
+                  {Array.isArray(sortedByDistance) && sortedByDistance.length > 0 && (
+                    <button
+                      className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
+                      onClick={() => setSortedByDistance(null)}
+                    >
+                      清除排序
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 bg-white/90 shadow-md rounded-md px-2 py-1">
+                  <button
+                    className={`px-2 py-1 rounded text-sm ${
+                      filter === "all" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
+                    }`}
+                    onClick={() => setFilter("all")}
+                  >
+                    全部
+                  </button>
+                  <button
+                    className={`px-2 py-1 rounded text-sm ${
+                      filter === "has" ? "bg-green-600 text-white" : "bg-green-100 text-green-700"
+                    }`}
+                    onClick={() => setFilter("has")}
+                  >
+                    有名額（{hasCount}）
+                  </button>
+                  <button
+                    className={`px-2 py-1 rounded text-sm ${
+                      filter === "none" ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700"
+                    }`}
+                    onClick={() => setFilter("none")}
+                  >
+                    無名額（{noneCount}）
+                  </button>
+                </div>
               </div>
+              {/* Rwd_離我最近_end */}
             </div>
 
             {/* 底部置中：公告按鈕（使用者可自行開啟） */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1100]">
               <button
-                onClick={() => setShowAnnouncement(true)}
-                className="px-4 py-2 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm"
+                onClick={openAnnouncement}
+                className="px-4 py-2 rounded-full bg-amber-300 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm"
                 title="查看公告"
               >
                 📢 公告訊息
@@ -348,26 +387,26 @@ const [showAnnouncement, setShowAnnouncement] = useState(false);
 
       {/* 置中公告（首次自動顯示，之後可手動開啟） */}
       {showAnnouncement && (
-  <div className="fixed inset-0 z-[3000] flex items-center justify-center">
-    <div className="absolute inset-0 bg-black/40" onClick={() => setShowAnnouncement(false)} />
-    <div className="relative w-full max-w-xl mx-4">
-      <div className="bg-white rounded-2xl shadow-xl p-4">
-        <div className="flex justify-end">
-          <button
-            onClick={() => setShowAnnouncement(false)}
-            className="text-slate-500 hover:text-slate-700 text-xl leading-none"
-            aria-label="關閉公告"
-            title="關閉"
-          >
-            ×
-          </button>
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={closeAnnouncement} />
+          <div className="relative w-full max-w-xl mx-4">
+            <div className="bg-white rounded-2xl shadow-xl p-4">
+              <div className="flex justify-end">
+                <button
+                  onClick={closeAnnouncement}
+                  className="text-slate-500 hover:text-slate-700 text-xl leading-none"
+                  aria-label="關閉公告"
+                  title="關閉"
+                >
+                  ×
+                </button>
+              </div>
+              {/* 只放內容版 */}
+              <AnnouncementPanel />
+            </div>
+          </div>
         </div>
-        {/* 只放內容版 */}
-        <AnnouncementPanel />
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }

@@ -7,6 +7,18 @@ import type { Clinic } from "@/types/clinic";
 
 const taipeiCenter: LatLngExpression = [25.0478, 121.5319];
 
+function useIsNarrow(bp = 1170) {
+    const [narrow, setNarrow] = useState(false);
+    useEffect(() => {
+      const mq = window.matchMedia(`(max-width:${bp - 1}px)`); // ← 改成 <1170
+      const onChange = () => setNarrow(mq.matches);
+      onChange();
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    }, [bp]);
+    return narrow;
+  }
+
 // 使用者位置 marker
 const userIcon = new Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -70,14 +82,21 @@ export default function ClinicsMap(props: {
   center?: [number, number] | null;
   onSelect?: (clinic: Clinic) => void;
   onUserLocate?: (lat: number, lng: number) => void;
+  topSafePx?: number;
 }) {
-  const { visibleClinics, selectedId, center, onSelect, onUserLocate } = props;
+  const { visibleClinics, selectedId, center, onSelect, onUserLocate, topSafePx = 24 } = props;
 
   const [position, setPosition] = useState<LatLngExpression | null>(null);
+
 
   // 用 Map<id, ref>，避免排序後索引錯位
   const markerRefs = useRef<Map<string, LeafletMarker>>(new Map());
 
+  const isNarrow = useIsNarrow(1170);
+  const SAFE_TOP = isNarrow ? Math.max(topSafePx ?? 0, 180) : 24; // 小於1170時至少 180px
+  const POPUP_OFFSET_Y = isNarrow ? 12 : 0;                       // 卡片再往下移一些
+
+  
   // 抓定位
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -193,6 +212,7 @@ export default function ClinicsMap(props: {
   };
 
   return (
+
     <MapContainer center={initialCenter} zoom={15} scrollWheelZoom style={{ height: "100vh", width: "100%" }}>
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -224,11 +244,19 @@ export default function ClinicsMap(props: {
           }}
           eventHandlers={{ click: () => onSelect?.(c) }}
         >
-          <Popup autoPan keepInView autoPanPadding={[24, 24]} autoPanPaddingTopLeft={[24, 100]}>
+          <Popup
+            autoPan
+            keepInView
+            maxWidth={isNarrow ? 280 : 360}
+            autoPanPaddingTopLeft={[16, SAFE_TOP]}
+  autoPanPaddingBottomRight={[16, 24]}
+  offset={[0, POPUP_OFFSET_Y]}
+            >
             {renderPopup(c)}
           </Popup>
         </Marker>
       ))}
     </MapContainer>
+
   );
 }
