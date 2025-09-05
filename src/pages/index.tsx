@@ -107,6 +107,8 @@ const DIST_LIMIT_KM = 30;
 
 
 export default function Home() {
+  const [views, setViews] = useState<number | null>(null);
+  const mountedOnce = useRef(false); // 防 React 開發模式重複執行
   const [searchInput, setSearchInput] = useState("");
   //預設顯示All
   //const [filter, setFilter] = useState<"all" | "has" | "none">("all");
@@ -150,6 +152,27 @@ export default function Home() {
   // 計數（全量）
   const hasCount = useMemo(() => clinicsAll.filter((c) => c.has_quota).length, []);
   const noneCount = useMemo(() => clinicsAll.filter((c) => !c.has_quota).length, []);
+
+  useEffect(() => {
+    if (mountedOnce.current) return;
+    mountedOnce.current = true;
+
+    (async () => {
+      // 1) 先拿目前總數
+      const r1 = await fetch('/api/views', { cache: 'no-store' });
+      const d1 = await r1.json().catch(() => ({ views: 0 }));
+      setViews(d1.views ?? 0);
+
+      // 2) 每個瀏覽 session 只 +1 一次（避免單頁面路由切換狂加）
+      if (!sessionStorage.getItem('viewed')) {
+        const r2 = await fetch('/api/views', { method: 'POST', keepalive: true });
+        const d2 = await r2.json().catch(() => null);
+        if (d2?.views != null) setViews(d2.views);
+        sessionStorage.setItem('viewed', '1');
+      }
+    })();
+  }, []);
+
 
   // filter 改變 → 清排序 / 校正 selected
   useEffect(() => {
@@ -305,6 +328,10 @@ export default function Home() {
             onChangeFilter={setFilter}
           />
           </div>
+          <div className="z-[1000] fixed top-1 right-5 text-xs bg-black/60 text-white px-3 py-1 rounded">
+        👀 瀏覽人次：{views ?? '…'}
+          </div>
+          
           {/* 地圖與搜尋 UI */}
           <div className="flex-grow w-full h-screen
           md:ml-80
@@ -312,12 +339,12 @@ export default function Home() {
           overflow-x-hidden relative">
                 {/* Rwd_搜尋_start */}
          
-
+          
           {/* 上方搜尋 & 篩選 */}
           <div
           ref={toolbarRef}
           className="
-            absolute z-[1000] top-5 flex items-center gap-2 pointer-events-none
+            absolute z-[1000] top-8 flex items-center gap-2 pointer-events-none
             max-[1169px]:left-4 max-[1169px]:right-4
             max-[1169px]:flex-col max-[1169px]:items-stretch max-[1169px]:gap-3
             min-[1170px]:left-auto min-[1170px]:right-6
@@ -469,6 +496,7 @@ export default function Home() {
             />
              
           </div>
+          
            {/* 頁尾：放在最外層容器最後 */}
             {/* <div className="hidden md:block fixed bottom-[env(safe-area-inset-bottom)] right-[env(safe-area-inset-right)] z-[1100] w-auto">
               <Footer
