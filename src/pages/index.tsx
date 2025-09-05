@@ -7,6 +7,7 @@ import clinic from "@/data/clinic.json";
 import LeftSidebar from "../components/LeftSidebar";
 import AnnouncementPanel from "@/components/AnnouncementPanel";
 import SmartButton from "@/components/SmartButton"; 
+//import Footer from "@/components/Footer";
 import type { Clinic } from "@/types/clinic";
 
 // 動態載入地圖（Leaflet 需關 SSR）
@@ -438,9 +439,9 @@ export default function Home() {
           {/* Rwd_離我最近_end */}
           </div>
 
-
+            
             {/* 底部置中：公告按鈕（使用者可自行開啟） */}
-            <div className="absolute bottom-18 left-1/2 -translate-x-1/2 z-[1100]">
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[1100]">
               <SmartButton type="button"
                 onClick={openAnnouncement}
                 className="px-4 py-2 rounded-full bg-amber-300 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm"
@@ -448,7 +449,9 @@ export default function Home() {
               >
                 📢 公告訊息
               </SmartButton>
+
             </div>
+            
 
 
             {/* 地圖 */}
@@ -464,9 +467,19 @@ export default function Home() {
               topSafePx={topSafe}
               sidebarAtBottom={isSidebarBottom}
             />
-
+             
           </div>
+           {/* 頁尾：放在最外層容器最後 */}
+            {/* <div className="hidden md:block fixed bottom-[env(safe-area-inset-bottom)] right-[env(safe-area-inset-right)] z-[1100] w-auto">
+              <Footer
+                orgName="hsilan-sui"
+                repoUrl="https://github.com/hsilan-sui/counseling-map"
+                contactEmail="suihsilan@gmail.com"
+                className="!px-3 !py-2 !border !border-slate-200 !bg-white/95 rounded-tl-lg shadow-lg"
+              />
+            </div> */}
         </div>
+                   
       </div>
 
       {/* 置中公告（首次自動顯示，之後可手動開啟） */}
@@ -492,9 +505,12 @@ export default function Home() {
               <AnnouncementPanel />
             </div>
           </div>
+          
         </div>
+
       </div>
     )}
+
     </div>
   );
 }

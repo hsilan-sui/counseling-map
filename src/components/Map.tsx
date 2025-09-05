@@ -101,7 +101,7 @@ export default function ClinicsMap(props: {
     const SAFE_TOP = Math.max(topSafePx ?? 0, isNarrow ? 180 : 100);
     //const SAFE_TOP = Math.max(topSafePx ?? 0, isNarrow ? 120 : 84);
     //調整卡片的垂直高度
-    const POPUP_OFFSET_Y = isNarrow ? 160 : 100; //📱手機: 往下 40px, 桌機: 8px
+    const POPUP_OFFSET_Y = isNarrow ? 180 : 100; //📱手機: 往下 40px, 桌機: 8px
 
   
   // 抓定位

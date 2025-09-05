@@ -1,5 +1,7 @@
 // components/AnnouncementPanel.tsx
 import Link from "next/link";
+import AnnouncementFooter from "./AnnouncementFooter";
+
 
 export default function AnnouncementPanel() {
   return (
@@ -10,7 +12,7 @@ export default function AnnouncementPanel() {
           href="https://www.mohw.gov.tw/cp-16-79408-1.html"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-lg font-semibold cursor-pointer hover:text-blue-600 transition-colors"
+          className="text-lg font-semibold hover:text-blue-600 transition-colors"
         >
           青壯的心誰傾聽？心理健康支持擴大方案來了！ 衛福部「15-45歲青壯世代心理健康支持方案」8月1日上路
         </Link>
@@ -45,7 +47,7 @@ export default function AnnouncementPanel() {
 
       {/* 你提供的段落：為什麼會做這個網站？ */}
       <details className="rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">
-        <summary className="cursor-pointer font-medium">🙋‍♀️ 為什麼會做這個網站？</summary>
+      <summary className="font-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋‍♀️ 為什麼做這個網站？</summary>
         <div className="mt-2 space-y-2">
           <p>
             衛福部在 2023 年推出「<b>15–45 歲心理健康支持方案</b>」，補助每人最多 3 次<b>免費心理諮商</b>。
@@ -61,8 +63,8 @@ export default function AnnouncementPanel() {
             使用上不夠直覺，對一般民眾來說，難以快速找到附近有名額的合作機構。
           </p>
           <p>
-            所以做了這個網站，希望協助需要心理支持的人，<b>更方便地查詢</b>可預約的診所與資源。
-            這是一個<b>非商業的公益 side project</b>，資料來自各縣市衛生局與官方公告，會盡力保持更新。
+            所以額外做了這個網站，希望協助需要心理支持的人，<b>更方便地查詢</b>可預約的診所與資源。
+            這是一個<b>非商業的公益個人side project</b>，資料來自各縣市衛生局與官方公告，會盡力保持更新。
           </p>
           <p>
             如果你也覺得這個計畫重要，<b>歡迎分享給需要的朋友</b> ❤️
@@ -72,7 +74,7 @@ export default function AnnouncementPanel() {
 
       {/* 常見問題 */}
       <details className="rounded-md bg-slate-50 p-3">
-        <summary className="cursor-pointer font-medium">🙋 常見問題</summary>
+        <summary className="ffont-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋 常見問題</summary>
         <ul className="list-disc pl-5 mt-2 space-y-1">
           <li>
             <b>要掛精神科嗎？</b> 不一定，合作心理機構即可安排諮商，視情況轉介。
@@ -94,10 +96,8 @@ export default function AnnouncementPanel() {
       </div>
 
       {/* 免責 */}
-      <p className="text-xs text-slate-500">
-        資料來源：衛福部心理健康支持方案／地方衛生局公開資訊。<br />
-        本網站僅供查詢參考，不取代專業醫療建議。
-      </p>
+      {/* Footer */}
+      <AnnouncementFooter />
     </div>
   );
 }
