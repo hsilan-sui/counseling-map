@@ -25,6 +25,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+button:focus, a:focus {
+  outline: none;
+}
+
 
 /* ⭐ 修正手機點擊延遲 & 藍色高亮問題 */
 button, a, [role="button"], .pressable {

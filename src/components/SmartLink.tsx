@@ -18,10 +18,6 @@ export default function SmartLink({
         onSmartClick?.(e);
         rest.onPointerDown?.(e);
       }}
-      onClick={(e) => {
-        onSmartClick?.(e);
-        rest.onClick?.(e);
-      }}
     >
       {children}
     </a>
