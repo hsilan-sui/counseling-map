@@ -8,6 +8,7 @@ import LeftSidebar from "../components/LeftSidebar";
 import AnnouncementPanel from "@/components/AnnouncementPanel";
 import SmartButton from "@/components/SmartButton"; 
 //import Footer from "@/components/Footer";
+import ViewsBadge from "@/components/ViewsBadge";
 import type { Clinic } from "@/types/clinic";
 
 // 動態載入地圖（Leaflet 需關 SSR）
@@ -328,9 +329,9 @@ export default function Home() {
             onChangeFilter={setFilter}
           />
           </div>
-          <div className="z-[1000] fixed top-1 right-5 text-xs bg-black/60 text-white px-3 py-1 rounded">
-        👀 瀏覽人次：{views ?? '…'}
-          </div>
+
+          <ViewsBadge views={views} />
+
           
           {/* 地圖與搜尋 UI */}
           <div className="flex-grow w-full h-screen
