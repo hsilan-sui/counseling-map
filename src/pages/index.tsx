@@ -469,7 +469,7 @@ export default function Home() {
 
             
             {/* 底部置中：公告按鈕（使用者可自行開啟） */}
-          <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 z-[1200]" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
+          <div className="pointer-events-auto absolute left-1/2 -translate-x-1/2 z-[1200]" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 60px)" }}>
             <SmartButton type="button" onClick={openAnnouncement} className="px-4 py-2 rounded-full bg-amber-300 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm" title="查看公告">
               📢 公告訊息
             </SmartButton>
