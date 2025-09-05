@@ -94,10 +94,10 @@ src/
   "rows": [
     {
       "county": "臺北市",
-      "org_name": "李政洋身心診所",
+      "org_name": "xxx身心診所",
       "org_url": "https://www.leepsyclinic.com/",
-      "phone": "02-27620086、02-27473339",
-      "address": "臺北市松山區三民路84號.健康路345號及民生東路5段192號2樓之3",
+      "phone": "02-27620006、02-27473000",
+      "address": "臺北市松山區三民路84號......",
       "map_url": "https://www.google.com.tw/maps/place/...",
       "pay_detail": "掛號費600元",
       "this_week": 0,
