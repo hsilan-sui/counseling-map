@@ -317,7 +317,7 @@ export default function Home() {
           <div
           ref={toolbarRef}
           className="
-            absolute z-[1000] top-5 flex items-center gap-2
+            absolute z-[1000] top-5 flex items-center gap-2 pointer-events-none
             max-[1169px]:left-4 max-[1169px]:right-4
             max-[1169px]:flex-col max-[1169px]:items-stretch max-[1169px]:gap-3
             min-[1170px]:left-auto min-[1170px]:right-6
@@ -330,7 +330,7 @@ export default function Home() {
                 e.preventDefault();
                 handleSearch();
               }}
-              className="relative max-[1170px]:w-full"
+              className="relative max-[1170px]:w-full pointer-events-auto"
             >
               <input
                 list="clinic-suggestions"
@@ -378,7 +378,7 @@ export default function Home() {
           {/* 『離我最近 / 清除排序』這一組：≤1170 也維持橫排 */}
           <div
             className="
-              flex items-start gap-2
+              pointer-events-auto flex items-start gap-2
               max-[1170px]:flex-row
               min-[1170px]:flex-row
             "
@@ -405,7 +405,7 @@ export default function Home() {
             {/* 『全部 / 有名額 / 無名額』這一組：≤1170 也橫排（可換行），>1170 橫排且不換行 */}
           <div
             className="
-              flex items-center gap-2 bg-white/90 shadow-md rounded-md px-2 py-1
+              pointer-events-auto flex items-center gap-2 bg-white/90 shadow-md rounded-md px-2 py-1
               max-[1170px]:flex-row max-[1170px]:flex-wrap max-[1170px]:self-start max-[1170px]:w-auto max-[1170px]:grow-0
               min-[1170px]:flex-nowrap
             "
@@ -441,7 +441,7 @@ export default function Home() {
 
             
             {/* 底部置中：公告按鈕（使用者可自行開啟） */}
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[1100]">
+            <div className="pointer-events-auto absolute bottom-16 left-1/2 -translate-x-1/2 z-[1100]">
               <SmartButton type="button"
                 onClick={openAnnouncement}
                 className="px-4 py-2 rounded-full bg-amber-300 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm"
@@ -489,7 +489,7 @@ export default function Home() {
         <div className="relative w-full max-w-xl">
           <div className="bg-white rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
             {/* sticky header（關閉鈕永遠看得到） */}
-            <div className="sticky top-0 z-10 flex justify-end p-3 bg-white border-b">
+            <div className="pointer-events-auto sticky top-0 z-10 flex justify-end p-3 bg-white border-b">
               <SmartButton type="button"
                 onClick={closeAnnouncement}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 shadow-md"

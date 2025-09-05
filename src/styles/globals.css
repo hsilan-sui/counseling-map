@@ -25,6 +25,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* 只在除錯用，加了好找透明覆蓋層 */
+/* * { outline: 1px solid rgba(255,0,0,.08); } */
+
+
 button:focus, a:focus {
   outline: none;
 }
@@ -41,3 +45,4 @@ button, a, [role="button"], .pressable {
 避免 iOS 點擊高亮造成的「先 focus 後 toggle」
 */
 summary { -webkit-tap-highlight-color: transparent; }
+

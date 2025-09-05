@@ -264,7 +264,7 @@ export default function ClinicsMap(props: {
       ) : (
         <Marker position={taipeiCenter} icon={userIcon}><Popup>尚未取得定位，顯示預設位置</Popup></Marker>
       )}
-       <div className="relative max-[1200px]:translate-y-40">
+
       {/* 診所標記（座標已在 Home 時就校正過了，這裡直接用） */}
       {visibleClinics.map((c) => (
         <Marker
@@ -295,7 +295,7 @@ export default function ClinicsMap(props: {
         </Marker>
     
       ))}
-      </div>
+     
     </MapContainer>
 
   );
