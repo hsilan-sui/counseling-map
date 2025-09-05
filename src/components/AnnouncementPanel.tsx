@@ -47,7 +47,7 @@ export default function AnnouncementPanel() {
 
       {/* 你提供的段落：為什麼會做這個網站？ */}
       <details className="rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">
-      <summary className="font-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋‍♀️ 為什麼做這個網站？</summary>
+      <summary className="text-base font-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋‍♀️ 為什麼做這個網站？</summary>
         <div className="mt-2 space-y-2">
           <p>
             衛福部在 2023 年推出「<b>15–45 歲心理健康支持方案</b>」，補助每人最多 3 次<b>免費心理諮商</b>。
@@ -74,7 +74,7 @@ export default function AnnouncementPanel() {
 
       {/* 常見問題 */}
       <details className="rounded-md bg-slate-50 p-3">
-        <summary className="ffont-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋 常見問題</summary>
+        <summary className="text-base font-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋 常見問題</summary>
         <ul className="list-disc pl-5 mt-2 space-y-1">
           <li>
             <b>要掛精神科嗎？</b> 不一定，合作心理機構即可安排諮商，視情況轉介。

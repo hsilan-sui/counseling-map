@@ -31,13 +31,13 @@ export default function AnnouncementFooter({
           href={repoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:text-slate-700"
+          className="text-base underline hover:text-slate-700"
         >
           GitHub
         </Link>
-        <a
+        <a 
           href={`mailto:${contactEmail}`}
-          className="underline hover:text-slate-700"
+          className="text-base underline hover:text-slate-700"
         >
           聯絡作者
         </a>

@@ -1,22 +1,21 @@
-import { AnchorHTMLAttributes } from "react";
+import { AnchorHTMLAttributes, MouseEvent } from "react";
 
 type SmartLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
-  onSmartClick?: (
-    e: React.MouseEvent<HTMLAnchorElement> | React.PointerEvent<HTMLAnchorElement>
-  ) => void;
+  onSmartClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 };
 
 export default function SmartLink({
   onSmartClick,
   children,
+  onClick,
   ...rest
 }: SmartLinkProps) {
   return (
     <a
       {...rest}
-      onPointerDown={(e) => {
+      onClick={(e) => {
         onSmartClick?.(e);
-        rest.onPointerDown?.(e);
+        onClick?.(e);
       }}
     >
       {children}
