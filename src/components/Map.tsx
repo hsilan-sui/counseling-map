@@ -4,6 +4,7 @@ import type { LatLngExpression } from "leaflet";
 import { Icon, Marker as LeafletMarker } from "leaflet";
 import type { LeafletMouseEvent } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import SmartLink from "@/components/SmartLink";
 import type { Clinic } from "@/types/clinic";
 
 const taipeiCenter: LatLngExpression = [25.0478, 121.5319];
@@ -99,7 +100,8 @@ export default function ClinicsMap(props: {
   // 讓上方安全距直接以父層傳入的 topSafePx 為主，並給個最低值
     const SAFE_TOP = Math.max(topSafePx ?? 0, isNarrow ? 180 : 100);
     //const SAFE_TOP = Math.max(topSafePx ?? 0, isNarrow ? 120 : 84);
-    const POPUP_OFFSET_Y = isNarrow ? 16 : 8;
+    //調整卡片的垂直高度
+    const POPUP_OFFSET_Y = isNarrow ? 160 : 100; //📱手機: 往下 40px, 桌機: 8px
 
   
   // 抓定位
@@ -225,14 +227,14 @@ export default function ClinicsMap(props: {
 
         <div className="mt-2 flex gap-2">
           {c.org_url && (
-            <a className="px-2 py-1 text-white bg-pink-200 rounded" href={c.org_url} target="_blank" rel="noreferrer">
+            <SmartLink className="px-2 py-1 text-white bg-pink-200 rounded" href={c.org_url} target="_blank" rel="noreferrer">
               官網
-            </a>
+            </SmartLink>
           )}
           {c.map_url && (
-            <a className="px-2 py-1 text-white bg-pink-200 rounded" href={c.map_url} target="_blank" rel="noreferrer">
+            <SmartLink className="px-2 py-1 text-white bg-pink-200 rounded" href={c.map_url} target="_blank" rel="noreferrer">
               Google 地圖
-            </a>
+            </SmartLink>
           )}
         </div>
         <div className="text-[11px] text-gray-400 mt-2">
@@ -262,7 +264,7 @@ export default function ClinicsMap(props: {
       ) : (
         <Marker position={taipeiCenter} icon={userIcon}><Popup>尚未取得定位，顯示預設位置</Popup></Marker>
       )}
-       <div className="relative max-[1200px]:translate-y-20">
+       <div className="relative max-[1200px]:translate-y-40">
       {/* 診所標記（座標已在 Home 時就校正過了，這裡直接用） */}
       {visibleClinics.map((c) => (
         <Marker
@@ -277,13 +279,13 @@ export default function ClinicsMap(props: {
         >
         
           <Popup
-            autoPan
+            autoPan={false}
             keepInView
             maxWidth={isNarrow ? 280 : 360}
             autoPanPadding={[16, SAFE_TOP]}              // ⭐ 新增：整體 padding
             // autoPanPaddingTopLeft={[16, SAFE_TOP]}       // 仍保留
             autoPanPaddingBottomRight={[16, 24]}
-            offset={[0, POPUP_OFFSET_Y]}
+            offset={[0, POPUP_OFFSET_Y]} //設成正數 y → Popup 整張卡片往下移
             >
             
                 {renderPopup(c)}

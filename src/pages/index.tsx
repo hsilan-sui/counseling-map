@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import clinic from "@/data/clinic.json";
 import LeftSidebar from "../components/LeftSidebar";
 import AnnouncementPanel from "@/components/AnnouncementPanel";
+import SmartButton from "@/components/SmartButton"; 
 import type { Clinic } from "@/types/clinic";
 
 // 動態載入地圖（Leaflet 需關 SSR）
@@ -274,7 +275,7 @@ export default function Home() {
       setSearchInput("");                   // ✅ 成功後清空輸入框
     } else {
       // （可選）找不到時給點回饋
-      alert("找不到符合的診所或地址");
+      alert("請先點擊『清除排序』，再鍵入診所或地址名稱");
     }
   };
 
@@ -345,7 +346,7 @@ export default function Home() {
                 aria-label="搜尋診所名稱或地址"
               />
               {/* 內嵌在輸入框右側的搜尋按鈕 */}
-              <button
+              <SmartButton
                 type="submit"
                 disabled={!searchInput.trim()}
                 className="
@@ -356,7 +357,7 @@ export default function Home() {
                 aria-label="搜尋"
               >
                 🔍 搜尋
-              </button>
+              </SmartButton>
             </form>
 
             <datalist id="clinic-suggestions">
@@ -381,20 +382,21 @@ export default function Home() {
               min-[1170px]:flex-row
             "
           >
-            <button
+            <SmartButton
+              type="button"
               className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm shadow-md hover:bg-blue-700"
               onClick={sortClinicsByDistance}
             >
               離我最近
-            </button>
+            </SmartButton>
 
             {Array.isArray(sortedByDistance) && sortedByDistance.length > 0 && (
-              <button
+              <SmartButton type="button"
                 className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
                 onClick={() => setSortedByDistance(null)}
               >
                 清除排序
-              </button>
+              </SmartButton>
             )}
           </div>
 
@@ -407,30 +409,30 @@ export default function Home() {
               min-[1170px]:flex-nowrap
             "
           >
-              <button
+              <SmartButton type="button"
                 className={`px-2 py-1 rounded text-sm ${
                   filter === "all" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
                 }`}
                 onClick={() => setFilter("all")}
               >
                 全部
-              </button>
-              <button
+              </SmartButton>
+              <SmartButton type="button"
                 className={`px-2 py-1 rounded text-sm ${
                   filter === "has" ? "bg-green-600 text-white" : "bg-green-100 text-green-700"
                 }`}
                 onClick={() => setFilter("has")}
               >
                 有名額（{hasCount}）
-              </button>
-              <button
+              </SmartButton>
+              <SmartButton type="button"
                 className={`px-2 py-1 rounded text-sm ${
                   filter === "none" ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700"
                 }`}
                 onClick={() => setFilter("none")}
               >
                 無名額（{noneCount}）
-              </button>
+              </SmartButton>
             </div>
           </div>
           {/* Rwd_離我最近_end */}
@@ -439,13 +441,13 @@ export default function Home() {
 
             {/* 底部置中：公告按鈕（使用者可自行開啟） */}
             <div className="absolute bottom-18 left-1/2 -translate-x-1/2 z-[1100]">
-              <button
+              <SmartButton type="button"
                 onClick={openAnnouncement}
                 className="px-4 py-2 rounded-full bg-amber-300 text-amber-800 border border-amber-200 shadow hover:bg-amber-200 text-sm"
                 title="查看公告"
               >
                 📢 公告訊息
-              </button>
+              </SmartButton>
             </div>
 
 
@@ -475,14 +477,14 @@ export default function Home() {
           <div className="bg-white rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
             {/* sticky header（關閉鈕永遠看得到） */}
             <div className="sticky top-0 z-10 flex justify-end p-3 bg-white border-b">
-              <button
+              <SmartButton type="button"
                 onClick={closeAnnouncement}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 shadow-md"
                 aria-label="關閉公告"
                 title="關閉"
               >
                 &times;
-              </button>
+              </SmartButton>
             </div>
 
             {/* 內容要包在可捲動容器裡 */}

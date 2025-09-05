@@ -1,5 +1,7 @@
 import type { Clinic } from "@/types/clinic";
 import { useMemo } from "react";
+import SmartButton from "@/components/SmartButton";
+import SmartLink from "@/components/SmartLink";
 
 type Props = {
   clinics: Clinic[];
@@ -70,13 +72,13 @@ export default function LeftSidebar({
             已優先顯示：{preferredCounty}
           </span>
           {onClearPreferred && (
-            <button
+            <SmartButton
               type="button"
               onClick={onClearPreferred}
               className="text-xs text-blue-600 hover:underline"
             >
               清除
-            </button>
+            </SmartButton>
           )}
         </div>
       )}
@@ -84,30 +86,30 @@ export default function LeftSidebar({
       <hr className="mb-3" />
 
       <div className="flex items-center gap-1 bg-white shadow-sm rounded-md px-1.5 py-1 mb-2">
-        <button
+        <SmartButton type="button"
           className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
             filter === "all" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-700"
           }`}
           onClick={() => onChangeFilter("all")}
         >
           全部（{totalAll}）
-        </button>
-        <button
+        </SmartButton>
+        <SmartButton type="button"
           className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
             filter === "has" ? "bg-green-600 text-white" : "bg-green-100 text-green-700"
           }`}
           onClick={() => onChangeFilter("has")}
         >
           有名額（{totalHas}）
-        </button>
-        <button
+        </SmartButton>
+        <SmartButton type="button"
           className={`px-2 py-0.5 rounded text-xs whitespace-nowrap ${
             filter === "none" ? "bg-gray-600 text-white" : "bg-gray-100 text-gray-700"
           }`}
           onClick={() => onChangeFilter("none")}
         >
           無名額（{totalNone}）
-        </button>
+        </SmartButton>
       </div>
 
       <hr className="mb-3" />
@@ -216,7 +218,7 @@ export default function LeftSidebar({
                 {(c.org_url || c.map_url) && (
                   <div className="mt-2 flex gap-2 text-xs">
                     {c.org_url && (
-                      <a
+                      <SmartLink
                         className="px-2 py-1 text-white bg-pink-300 rounded"
                         href={c.org_url}
                         target="_blank"
@@ -224,10 +226,10 @@ export default function LeftSidebar({
                         onClick={(e) => e.stopPropagation()}
                       >
                         官網
-                      </a>
+                      </SmartLink>
                     )}
                     {c.map_url && (
-                      <a
+                      <SmartLink
                         className="px-2 py-1 text-white bg-pink-300 rounded"
                         href={c.map_url}
                         target="_blank"
@@ -235,7 +237,7 @@ export default function LeftSidebar({
                         onClick={(e) => e.stopPropagation()}
                       >
                         地圖
-                      </a>
+                      </SmartLink>
                     )}
                   </div>
                 )}
@@ -256,7 +258,8 @@ export default function LeftSidebar({
     <div className="md:hidden fixed bottom-0 inset-x-0 z-[1002] bg-white/95 backdrop-blur border-t border-gray-200">
       <div className="flex items-center gap-2 overflow-x-auto px-3 py-2">
         {clinics.map((c) => (
-          <button
+          <SmartButton
+           type="button"
             key={c.id}
             onClick={() => onSelect(c)}
             className={[
@@ -267,7 +270,7 @@ export default function LeftSidebar({
             title={c.org_name}
           >
             <span className="max-w-[12rem] block truncate">{c.org_name}</span>
-          </button>
+          </SmartButton>
         ))}
       </div>
     </div>

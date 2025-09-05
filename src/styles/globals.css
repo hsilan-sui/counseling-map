@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* ⭐ 修正手機點擊延遲 & 藍色高亮問題 */
+button, a, [role="button"], .pressable {
+  touch-action: manipulation;        /* 移除 300ms click 延遲 */
+  -webkit-tap-highlight-color: transparent; /* 移除 iOS 藍色閃爍 */
+  -webkit-touch-callout: none;       /* 長按不彈出選單 */
+}
