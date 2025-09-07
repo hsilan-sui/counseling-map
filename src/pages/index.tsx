@@ -3,7 +3,7 @@
  */
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState, useRef } from "react";
-import clinic from "@/data/clinic.json";
+import clinic from "@/data/clinics.json";
 import LeftSidebar from "../components/LeftSidebar";
 import AnnouncementPanel from "@/components/AnnouncementPanel";
 import SmartButton from "@/components/SmartButton"; 
