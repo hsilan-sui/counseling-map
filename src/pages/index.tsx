@@ -12,17 +12,14 @@ import ViewsBadge from "@/components/ViewsBadge";
 import { useIsSidebarBottom } from "@/hooks/useIsSidebarBottom";
 import { useViewsCounter } from "@/hooks/useViewsCounter";
 import { mapClinics } from "@/utils/clinicMapper";
+import type { ClinicWithGeo } from "@/utils/clinicMapper";
 import { haversineDistance,  countyByCoords } from "@/utils/geo";
-import type { Clinic } from "@/types/clinic";
 
 // 動態載入地圖（Leaflet 需關 SSR）
 const ClinicsMap = dynamic(() => import("../components/Map"), { ssr: false });
 
 // ✅ 宣告放在 import 之後
 const ANNOUNCE_KEY = "announce:v2-2025-09-04";
-
-// ---- local type：在 Home 內部多帶一個 geoCounty，不動全域型別 ----
-type ClinicWithGeo = Clinic & { geoCounty: string };
 
 // ---- 22 縣市重心（大略值）& 用「座標」推縣市（忽略 JSON 的 county）----
 // 讀入時：補 id + 校正座標 + 帶上 geoCounty（之後排序/過濾都用它）

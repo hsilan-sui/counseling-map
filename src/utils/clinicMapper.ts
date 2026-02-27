@@ -1,7 +1,7 @@
 import { normalizeLatLng, countyByCoords } from "@/utils/geo";
 import type { Clinic } from "@/types/clinic";
 
-type ClinicWithGeo = Clinic & { geoCounty: string };
+export type ClinicWithGeo = Clinic & { geoCounty: string };
 
 export function mapClinics(raw: { rows?: any[] }): (Clinic & { geoCounty: string })[] {
   return ((raw as any).rows || []).map((c: any, i: number) => {
