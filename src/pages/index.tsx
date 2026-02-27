@@ -9,6 +9,7 @@ import AnnouncementPanel from "@/components/AnnouncementPanel";
 import SmartButton from "@/components/SmartButton"; 
 //import Footer from "@/components/Footer";
 import ViewsBadge from "@/components/ViewsBadge";
+import { useIsSidebarBottom } from "@/hooks/useIsSidebarBottom";
 import { useViewsCounter } from "@/hooks/useViewsCounter";
 import { haversineDistance, normalizeLatLng, countyByCoords } from "@/utils/geo";
 import type { Clinic } from "@/types/clinic";
@@ -21,20 +22,6 @@ const ANNOUNCE_KEY = "announce:v2-2025-09-04";
 
 // ---- local type：在 Home 內部多帶一個 geoCounty，不動全域型別 ----
 type ClinicWithGeo = Clinic & { geoCounty: string };
-
-// 放在 Home 檔案內（或 utils）
-function useIsSidebarBottom(bp = 1170) {
-  const [isBottom, setIsBottom] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const m = window.matchMedia(`(max-width:${bp - 1}px)`); // <1170
-    const update = () => setIsBottom(m.matches);
-    update();
-    m.addEventListener("change", update);
-    return () => m.removeEventListener("change", update);
-  }, [bp]);
-  return isBottom;
-}
 
 // ---- 22 縣市重心（大略值）& 用「座標」推縣市（忽略 JSON 的 county）----
 // 讀入時：補 id + 校正座標 + 帶上 geoCounty（之後排序/過濾都用它）
