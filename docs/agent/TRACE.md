@@ -218,3 +218,7 @@ What improved:
 * Consider moving data sorting into hook as well
   未來可將排序邏輯也納入 hook
 
+
+## 2026-02-27 17:57:39
+- commit: 7285816
+- message: refactor: test trace append

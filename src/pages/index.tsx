@@ -9,6 +9,7 @@ import AnnouncementPanel from "@/components/AnnouncementPanel";
 import SmartButton from "@/components/SmartButton"; 
 //import Footer from "@/components/Footer";
 import ViewsBadge from "@/components/ViewsBadge";
+import { useViewsCounter } from "@/hooks/useViewsCounter";
 import type { Clinic } from "@/types/clinic";
 
 // 動態載入地圖（Leaflet 需關 SSR）
@@ -108,8 +109,7 @@ const DIST_LIMIT_KM = 30;
 
 
 export default function Home() {
-  const [views, setViews] = useState<number | null>(null);
-  const mountedOnce = useRef(false); // 防 React 開發模式重複執行
+  const { views } = useViewsCounter();
   const [searchInput, setSearchInput] = useState("");
   //預設顯示All
   //const [filter, setFilter] = useState<"all" | "has" | "none">("all");
@@ -153,27 +153,6 @@ export default function Home() {
   // 計數（全量）
   const hasCount = useMemo(() => clinicsAll.filter((c) => c.has_quota).length, []);
   const noneCount = useMemo(() => clinicsAll.filter((c) => !c.has_quota).length, []);
-
-  useEffect(() => {
-    if (mountedOnce.current) return;
-    mountedOnce.current = true;
-
-    (async () => {
-      // 1) 先拿目前總數
-      const r1 = await fetch('/api/views', { cache: 'no-store' });
-      const d1 = await r1.json().catch(() => ({ views: 0 }));
-      setViews(d1.views ?? 0);
-
-      // 2) 每個瀏覽 session 只 +1 一次（避免單頁面路由切換狂加）
-      if (!sessionStorage.getItem('viewed')) {
-        const r2 = await fetch('/api/views', { method: 'POST', keepalive: true });
-        const d2 = await r2.json().catch(() => null);
-        if (d2?.views != null) setViews(d2.views);
-        sessionStorage.setItem('viewed', '1');
-      }
-    })();
-  }, []);
-
 
   // filter 改變 → 清排序 / 校正 selected
   useEffect(() => {
