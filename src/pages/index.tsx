@@ -11,7 +11,8 @@ import SmartButton from "@/components/SmartButton";
 import ViewsBadge from "@/components/ViewsBadge";
 import { useIsSidebarBottom } from "@/hooks/useIsSidebarBottom";
 import { useViewsCounter } from "@/hooks/useViewsCounter";
-import { haversineDistance, normalizeLatLng, countyByCoords } from "@/utils/geo";
+import { mapClinics } from "@/utils/clinicMapper";
+import { haversineDistance,  countyByCoords } from "@/utils/geo";
 import type { Clinic } from "@/types/clinic";
 
 // 動態載入地圖（Leaflet 需關 SSR）
@@ -25,16 +26,7 @@ type ClinicWithGeo = Clinic & { geoCounty: string };
 
 // ---- 22 縣市重心（大略值）& 用「座標」推縣市（忽略 JSON 的 county）----
 // 讀入時：補 id + 校正座標 + 帶上 geoCounty（之後排序/過濾都用它）
-const clinicsAll: ClinicWithGeo[] = ((clinic as any).rows || []).map((c: any, i: number) => {
-  const pos = normalizeLatLng(Number(c.lat), Number(c.lng));
-  return {
-    id: String(i + 1),
-    ...c,
-    lat: pos.lat,
-    lng: pos.lng,
-    geoCounty: countyByCoords(pos.lat, pos.lng),
-  } as ClinicWithGeo;
-});
+const clinicsAll = mapClinics(clinic);
 
 // 距離上限（km）：避免極端錯誤座標混入
 const DIST_LIMIT_KM = 30;
