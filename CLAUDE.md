@@ -64,6 +64,9 @@ When reviewing the project, you must:
 * Explain data flow and component responsibilities.
   說明資料流與元件責任分工。
 
+* Draw flow architecture and subgraph with MERMAID. 
+  最後用mermaid畫一個流程架構圖讓我理解
+  
 ---
 
 ## B. Identify Pain Points ｜指出問題點
