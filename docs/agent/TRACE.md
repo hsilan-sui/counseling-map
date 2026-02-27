@@ -1,6 +1,6 @@
 ---
 # AI 工程紀錄本
-# 設定post-commi
+# 設定post-commit
 ---
 
 # docs/ai/TRACE.md
