@@ -222,3 +222,13 @@ What improved:
 ## 2026-02-27 17:57:39
 - commit: 7285816
 - message: refactor: test trace append
+
+## 2026-02-27 23:07:22
+- commit: 75fee2b
+- message: refactor(home): extract views counter logic into useViewsCounter hook without behavior change
+- Result:
+  - Extracted useViewsCounter with zero behavior change.
+  - Verified build success.
+## 2026-02-27 23:15:40
+- commit: f1a5a8d
+- message: refactor(geo): extract pure geo utilities to utils
