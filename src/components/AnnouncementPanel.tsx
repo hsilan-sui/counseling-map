@@ -9,20 +9,19 @@ export default function AnnouncementPanel() {
       {/* 標題連結 */}
       <div className="flex items-start justify-between">
         <Link
-          href="https://www.mohw.gov.tw/cp-16-79408-1.html"
+          href="https://dep.mohw.gov.tw/DOMHAOH/cp-502-85046-107.html"
           target="_blank"
           rel="noopener noreferrer"
           className="text-lg font-semibold hover:text-blue-600 transition-colors"
         >
-          青壯的心誰傾聽？心理健康支持擴大方案來了！ 衛福部「15-45歲青壯世代心理健康支持方案」8月1日上路
+          健康「心」生活！115年續推青壯世代心理健康支持方案
         </Link>
       </div>
       <hr className="mb-2" />
 
       {/* 方案簡述 */}
       <p>
-        衛福部推出心理健康支持方案，針對 <b>15–45 歲青壯年</b> 提供
-        <b>每人最多 3 次免費心理諮商</b>。首次到場請攜帶身分證或健保卡。
+        衛福部持續推動心理健康支持方案，針對 15–45 歲青壯世代提供每人每年最多 3 次免費心理諮商。113–114 年曾使用過的民眾，115 年可再次使用。首次到場請攜帶身分證或健保卡。
       </p>
 
       {/* 如何預約 */}
@@ -34,7 +33,7 @@ export default function AnnouncementPanel() {
           </li>
           <li>
             以 <b>電話／LINE／診所官網</b> 向該診所預約。<br />
-            📌 預約時<b>務必說「我要使用 15–45 歲心理健康支持方案」</b>。
+            📌 預約時<b>務必說「我要使用青壯世代心理健康支持方案」</b>。
           </li>
           <li>
             首次到場請<b>攜帶身分證或健保卡</b>。
@@ -50,7 +49,7 @@ export default function AnnouncementPanel() {
       <summary className="text-base font-medium touch-manipulation select-none outline-none focus-visible:ring-2 focus-visible:ring-slate-300">🙋‍♀️ 為什麼做這個網站？</summary>
         <div className="mt-2 space-y-2">
           <p>
-            衛福部在 2023 年推出「<b>15–45 歲心理健康支持方案</b>」，補助每人最多 3 次<b>免費心理諮商</b>。
+            衛福部自 113 年推出「青壯世代心理健康支持方案」以來，115 年持續編列預算續辦。
             但官方查詢網站
             <a
               href="https://sps.mohw.gov.tw/mhs"
@@ -85,6 +84,9 @@ export default function AnnouncementPanel() {
           <li>
             <b>可以多於 3 次嗎？</b> 補助上限為 3 次，第 4 次起需自費或使用其他資源。
           </li>
+          <li>
+            <b>以前用過還能再用嗎？</b> 可以，113–114 年曾使用過者，115 年可再次申請 3 次免費諮商。
+          </li>
         </ul>
       </details>
 
@@ -92,7 +94,11 @@ export default function AnnouncementPanel() {
       <div className="rounded-md bg-rose-50 p-3">
         <b>⚠️ 緊急或高風險請立即求助：</b>
         <br />
-        安心專線 1925｜生命線 1995｜張老師 1980
+        安心專線 1925（24小時）
+        <br />
+        生命線 1995
+        <br />
+        張老師 1980
       </div>
 
       {/* 免責 */}
