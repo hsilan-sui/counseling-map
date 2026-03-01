@@ -272,3 +272,7 @@ What improved:
 ## 2026-03-01 16:14:36
 - commit: 77d516a
 - message: chore: finalize v2.0 architecture refactor version
+
+## 2026-03-01 16:21:11
+- commit: ecb0288
+- message: docs: add note
