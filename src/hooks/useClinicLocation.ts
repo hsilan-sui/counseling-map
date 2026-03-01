@@ -94,15 +94,31 @@ export function useClinicLocation(params: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const onUserLocate = (lat: number, lng: number) => {
+    setUserLatLng([lat, lng]);
+  };
+
+  const moveMapTo = (lat: number, lng: number) => {
+    setMapCenter([lat, lng]);
+  };
+
+  const clearPreferredSort = () => {
+    setPreferredCounty(null);
+    setSortedByDistance(null);
+  };
+
+  const clearDistanceSort = () => {
+    setSortedByDistance(null);
+  };
+
   return {
-    userLatLng,
-    setUserLatLng,
     mapCenter,
-    setMapCenter,
     preferredCounty,
-    setPreferredCounty,
     sortedByDistance,
-    setSortedByDistance,
     sortClinicsByDistance,
+    onUserLocate,
+    moveMapTo,
+    clearPreferredSort,
+    clearDistanceSort,
   };
 }

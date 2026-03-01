@@ -54,15 +54,14 @@ export default function Home() {
   });
 
   const {
-    userLatLng,
-    setUserLatLng,
     mapCenter,
-    setMapCenter,
     preferredCounty,
-    setPreferredCounty,
     sortedByDistance,
-    setSortedByDistance,
     sortClinicsByDistance,
+    onUserLocate,
+    moveMapTo,
+    clearPreferredSort,
+    clearDistanceSort,
   } = useClinicLocation({
     clinics,
     filter,
@@ -143,7 +142,7 @@ export default function Home() {
     if (idx >= 0) {
       const found = clinicsToShow[idx];
       setSelectedClinicId(found.id);
-      setMapCenter([found.lat, found.lng]); // 已為校正座標
+      moveMapTo(found.lat, found.lng); // 已為校正座標
       setSearchInput("");                   // ✅ 成功後清空輸入框
     } else {
       // （可選）找不到時給點回饋
@@ -162,16 +161,13 @@ export default function Home() {
             selectedId={selectedClinicId}
             onSelect={(c) => {
               setSelectedClinicId(c.id);
-              setMapCenter([c.lat, c.lng]); // 已為校正座標
+              moveMapTo(c.lat, c.lng); // 已為校正座標
             }}
             totalAll={clinicsAll.length}
             totalHas={hasCount}
             totalNone={noneCount}
             preferredCounty={preferredCounty}
-            onClearPreferred={() => {
-              setPreferredCounty(null);
-              setSortedByDistance(null);
-            }}
+            onClearPreferred={clearPreferredSort}
             filter={filter}
             onChangeFilter={setFilter}
           />
@@ -269,7 +265,7 @@ export default function Home() {
             {Array.isArray(sortedByDistance) && sortedByDistance.length > 0 && (
               <SmartButton type="button"
                 className="px-3 py-1 rounded-md bg-gray-400 text-white text-sm shadow-md hover:bg-gray-500"
-                onClick={() => setSortedByDistance(null)}
+                onClick={clearDistanceSort}
               >
                 清除排序
               </SmartButton>
@@ -331,9 +327,9 @@ export default function Home() {
               center={mapCenter}
               onSelect={(c) => {
                 setSelectedClinicId(c.id);
-                setMapCenter([c.lat, c.lng]);
+                moveMapTo(c.lat, c.lng);
               }}
-              onUserLocate={(lat, lng) => setUserLatLng([lat, lng])}
+              onUserLocate={onUserLocate}
               topSafePx={topSafe}
               sidebarAtBottom={isSidebarBottom}
             />
