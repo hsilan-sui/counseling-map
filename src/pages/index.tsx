@@ -10,10 +10,11 @@ import SmartButton from "@/components/SmartButton";
 //import Footer from "@/components/Footer";
 import ViewsBadge from "@/components/ViewsBadge";
 import { useIsSidebarBottom } from "@/hooks/useIsSidebarBottom";
+import { useClinicLocation } from "@/hooks/useClinicLocation";
 import { useViewsCounter } from "@/hooks/useViewsCounter";
 import { mapClinics } from "@/utils/clinicMapper";
 import type { ClinicWithGeo } from "@/utils/clinicMapper";
-import { haversineDistance,  countyByCoords } from "@/utils/geo";
+import { selectClinics } from "@/utils/clinicSelectors";
 
 // 動態載入地圖（Leaflet 需關 SSR）
 const ClinicsMap = dynamic(() => import("../components/Map"), { ssr: false });
@@ -25,10 +26,6 @@ const ANNOUNCE_KEY = "announce:v2-2025-09-04";
 // 讀入時：補 id + 校正座標 + 帶上 geoCounty（之後排序/過濾都用它）
 const clinicsAll = mapClinics(clinic);
 
-// 距離上限（km）：避免極端錯誤座標混入
-const DIST_LIMIT_KM = 30;
-
-
 export default function Home() {
   const { views } = useViewsCounter();
   const [searchInput, setSearchInput] = useState("");
@@ -37,16 +34,7 @@ export default function Home() {
 
   //預設顯示 有名額 
   const [filter, setFilter] = useState<"all" | "has" | "none">("has");
-  // 分離語意
-  const [userLatLng, setUserLatLng] = useState<[number, number] | null>(null);
-  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
-
-  // 僅顯示用
-  const [preferredCounty, setPreferredCounty] = useState<string | null>(null);
-
-  // 距離排序結果（直接存陣列；lat/lng 已是校正後）
-  const [sortedByDistance, setSortedByDistance] = useState<ClinicWithGeo[] | null>(null);
 
   // 公告顯示狀態（首次顯示一次）
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -59,31 +47,39 @@ export default function Home() {
 
 
   // 篩選（依 has_quota/none）
-  const clinics = useMemo<ClinicWithGeo[]>(() => {
-    if (filter === "has") return clinicsAll.filter((c) => c.has_quota);
-    if (filter === "none") return clinicsAll.filter((c) => !c.has_quota);
-    return clinicsAll;
-  }, [filter]);
+  const clinics = selectClinics({
+    clinicsAll,
+    filter,
+    sortedByDistance: null,
+  });
+
+  const {
+    userLatLng,
+    setUserLatLng,
+    mapCenter,
+    setMapCenter,
+    preferredCounty,
+    setPreferredCounty,
+    sortedByDistance,
+    setSortedByDistance,
+    sortClinicsByDistance,
+  } = useClinicLocation({
+    clinics,
+    filter,
+    selectedClinicId,
+    setSelectedClinicId,
+  });
 
   // 顯示（排序優先）
-  const clinicsToShow = useMemo<ClinicWithGeo[]>(
-    () => sortedByDistance ?? clinics,
-    [clinics, sortedByDistance]
-  );
+  const clinicsToShow = selectClinics({
+    clinicsAll,
+    filter,
+    sortedByDistance,
+  });
 
   // 計數（全量）
   const hasCount = useMemo(() => clinicsAll.filter((c) => c.has_quota).length, []);
   const noneCount = useMemo(() => clinicsAll.filter((c) => !c.has_quota).length, []);
-
-  // filter 改變 → 清排序 / 校正 selected
-  useEffect(() => {
-    setSortedByDistance(null);
-    if (selectedClinicId) {
-      const exists = clinicsToShow.some((c) => c.id === selectedClinicId);
-      if (!exists) setSelectedClinicId(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
 
   // 啟動一次：稽核資料
   useEffect(() => {
@@ -117,38 +113,6 @@ export default function Home() {
     };
   }, []);
 
-  // helper：用指定座標排序最近診所 + 選取 + 置中
-  const sortClinicsByDistanceFrom = (ulat: number, ulng: number) => {
-    const userCounty = countyByCoords(ulat, ulng);
-    setPreferredCounty(userCounty);
-
-    const sameCounty = clinics.filter((c) => c.geoCounty === userCounty);
-    const pool = sameCounty.length ? sameCounty : clinics;
-
-    const sorted = [...pool]
-      .map((c) => ({ ...c, distance: haversineDistance(ulat, ulng, c.lat, c.lng) }))
-      .filter((c) => c.distance! <= DIST_LIMIT_KM)
-      .sort((a, b) => a.distance! - b.distance!);
-
-    setSortedByDistance(sorted);
-
-    if (sorted.length) {
-      const first = sorted[0];
-      setSelectedClinicId(first.id);
-      setMapCenter([first.lat, first.lng]);
-    }
-  };
-
-  // 「離我最近」按鈕（使用已知 userLatLng）
-  const sortClinicsByDistance = () => {
-    if (!userLatLng) {
-      alert("請先允許定位功能");
-      return;
-    }
-    const [ulat, ulng] = userLatLng;
-    sortClinicsByDistanceFrom(ulat, ulng);
-  };
-
   // ✅ 首次載入：只檢查；不要在這裡寫入 localStorage（Strict Mode 兩次執行會吃掉首次顯示）
   useEffect(() => {
     try {
@@ -157,23 +121,6 @@ export default function Home() {
     } catch {
       // 無痕模式可能報錯，忽略
     }
-
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          const { latitude, longitude } = coords;
-          setUserLatLng([latitude, longitude]);
-          // 直接用拿到的座標進行排序（避免 setState 非同步）
-          sortClinicsByDistanceFrom(latitude, longitude);
-        },
-        (err) => {
-          console.warn("定位失敗/被拒：", err.message);
-          if (!mapCenter) setMapCenter([23.6978, 120.9605]); // 台灣中心
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 👍 開關公告的處理：關閉時才標記已讀

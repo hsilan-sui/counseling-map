@@ -232,3 +232,27 @@ What improved:
 ## 2026-02-27 23:15:40
 - commit: f1a5a8d
 - message: refactor(geo): extract pure geo utilities to utils
+
+## 2026-02-27 23:16:33
+- commit: 651b9da
+- message: docs(trace): record geo utilities extraction
+
+## 2026-02-27 23:25:16
+- commit: bbe1b32
+- message: refactor(hooks): extract useIsSidebarBottom
+
+## 2026-02-27 23:36:40
+- commit: 9692c99
+- message: refactor(data): extract clinic mapping logic
+
+## 2026-02-27 23:41:03
+- commit: daccd5e
+- message: refactor(data): tighten mapClinics input typing
+
+## 2026-02-27 23:44:57
+- commit: 87f2fb8
+- message: refactor(types): move ClinicWithGeo to data layer
+
+## 2026-03-01 14:55:35
+- commit: 3dcb585
+- message: refactor: extract clinicSelectors without behavior change
